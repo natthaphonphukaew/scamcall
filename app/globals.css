@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — ที่เดียวที่กำหนดสี/ฟอนต์/มุมโค้งของทั้งแอป (SPEC ข้อ 15)
+ * component ใช้ class จาก token เหล่านี้ (bg-surface, text-muted, bg-danger ...) ห้ามใส่สี hex ตรงๆ
+ * เปลี่ยนธีมทั้งแอป = แก้ค่าในไฟล์นี้
+ */
+@theme {
+  --color-surface: #0b0f14;          /* พื้นหลังหลัก (หน้าจอโทรศัพท์) */
+  --color-surface-raised: #161c24;   /* การ์ด / bubble */
+  --color-text: #f3f5f7;
+  --color-muted: #8a96a3;
+  --color-accept: #22c55e;           /* ปุ่มรับสาย */
+  --color-danger: #ef4444;           /* ปุ่มวางสาย — ต้องเห็นชัดเสมอ */
+  --color-scammer: #f59e0b;          /* ฝั่งคนร้ายใน transcript */
+  --color-player: #38bdf8;           /* ฝั่งผู้เล่นใน transcript */
+
+  --font-sans: var(--font-thai), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1rem;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
