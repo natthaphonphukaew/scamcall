@@ -105,7 +105,14 @@ export class LiveCallController {
   private listeners = new Set<() => void>();
   private call: Call | null = null;
 
-  constructor(private readonly levelId: string) {}
+  /**
+   * @param canSaveTranscript อ่านตอนจบสาย — false = ไม่บันทึกผลลง sessionStorage
+   *   (ยังแสดง transcript ในหน้าจบสายได้ เพราะอยู่ในหน่วยความจำ) CLAUDE.md ข้อ 7.5
+   */
+  constructor(
+    private readonly levelId: string,
+    private readonly canSaveTranscript: () => boolean = () => false,
+  ) {}
 
   // ---- store (สำหรับ useSyncExternalStore) ----
   subscribe = (listener: () => void): (() => void) => {
@@ -310,7 +317,7 @@ export class LiveCallController {
       hangupT,
       turns: c.builder.snapshot(),
     };
-    saveCallSession(result);
+    if (this.canSaveTranscript()) saveCallSession(result);
 
     if (this.call !== c) return;
     this.set({

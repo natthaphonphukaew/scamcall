@@ -7,7 +7,14 @@ import { REDACTION_LABELS } from "@/lib/privacy/mask";
 import type { EndedScreenProps } from "./types";
 
 // Week 1: สรุปสายแบบเรียบ — Week 3 แทนด้วย Scam X-Ray + คะแนน
-export function EndedScreen({ scenario, result, errorMessage, onRestart }: EndedScreenProps) {
+export function EndedScreen({
+  scenario,
+  result,
+  errorMessage,
+  saved,
+  onRestart,
+  onBackToLevels,
+}: EndedScreenProps) {
   const leaked = [
     ...new Set(result.turns.filter((t) => t.speaker === "player").flatMap((t) => t.redactions)),
   ];
@@ -34,9 +41,12 @@ export function EndedScreen({ scenario, result, errorMessage, onRestart }: Ended
       <TranscriptList turns={result.turns} className="flex-1" />
 
       <footer className="flex flex-col items-center gap-2">
-        <p className="text-xs text-muted">{COPY.xrayComingSoon}</p>
+        <p className="text-xs text-muted">{saved ? COPY.xrayComingSoon : COPY.notSaved}</p>
         <Button onClick={onRestart} className="w-full">
           {COPY.restart}
+        </Button>
+        <Button onClick={onBackToLevels} className="w-full">
+          {COPY.backToLevels}
         </Button>
       </footer>
     </Screen>

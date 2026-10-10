@@ -17,8 +17,8 @@ export interface LiveCall extends LiveCallState {
 const getServerSnapshot = () => INITIAL_CALL_STATE;
 
 /** ตัวเชื่อม React ↔ LiveCallController — UI ทุกแบบใช้ hook นี้ (docs/SPEC.md ข้อ 15) */
-export function useLiveCall(levelId: string): LiveCall {
-  const [controller] = useState(() => new LiveCallController(levelId));
+export function useLiveCall(levelId: string, canSaveTranscript?: () => boolean): LiveCall {
+  const [controller] = useState(() => new LiveCallController(levelId, canSaveTranscript));
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, getServerSnapshot);
 
   useEffect(() => controller.dispose, [controller]);

@@ -147,16 +147,16 @@ Output ของ `/api/analyze` (บังคับด้วย JSON schema):
 ### Week 1 — โทรคุยกับ AI คนร้ายได้ (เริ่มที่นี่)
 - [x] สร้างโปรเจกต์ Next.js + TS + Tailwind
 - [x] `api/token` ออก ephemeral token
-- [ ] เชื่อมต่อ Live API จาก browser: ไมค์ → โมเดล → ลำโพง
-- [ ] ด่านแรก 1 ด่าน (ตำรวจ/ฟอกเงิน) ด้วย system prompt
-- [ ] เก็บ transcript ทั้งสองฝั่ง
-- [ ] เช็ก: เสียงไทยเป็นธรรมชาติไหม, latency, โมเดลยอมเล่นบทหรือไม่ (ถ้าไม่ยอม → แผนสำรอง: STT → LLM → TTS)
+- [x] เชื่อมต่อ Live API จาก browser: ไมค์ → โมเดล → ลำโพง
+- [x] ด่านแรก 1 ด่าน (ตำรวจ/ฟอกเงิน) ด้วย system prompt
+- [x] เก็บ transcript ทั้งสองฝั่ง
+- [x] เช็ก: เสียงไทยเป็นธรรมชาติไหม, latency, โมเดลยอมเล่นบทหรือไม่ (ผ่าน — ใช้ Live API ต่อ ดู `docs/week1-findings.md`)
 
 ### Week 2 — ทำให้เหมือนโดนโทรจริง
-- [ ] Incoming call screen + ringtone + ปุ่มรับ/วาง + ตัวจับเวลา
-- [ ] Scenario loader + 3–5 ด่าน
-- [ ] Auto hang-up ที่ `MAX_CALL_SECONDS`
-- [ ] กติกาความปลอดภัยครบตามข้อ 7
+- [x] Incoming call screen + ringtone + ปุ่มรับ/วาง + ตัวจับเวลา (logic ครบ — หน้าตาเรียบ รอ Nut ออกแบบ `components/call/*`)
+- [x] Scenario loader + 3–5 ด่าน (4 ด่าน: ธนาคาร, ตำรวจ, พัสดุ, สรรพากร)
+- [x] Auto hang-up ที่ `MAX_CALL_SECONDS` (ทำแล้วใน Week 1)
+- [x] กติกาความปลอดภัยครบตามข้อ 7 (หน้าแรก disclaimer + consent, ไม่บันทึกถ้าไม่ยินยอม)
 
 ### Week 3 — Scam X-Ray + คะแนน
 - [ ] `/api/analyze` + JSON schema

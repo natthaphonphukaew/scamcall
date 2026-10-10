@@ -25,5 +25,8 @@ export interface EndedScreenProps {
   scenario: PublicScenario;
   result: CallSession;
   errorMessage: string | null;
+  /** false = ผู้เล่นไม่ยินยอมให้เก็บ transcript (แสดงได้ แต่ไม่ได้บันทึก และจะทำ X-Ray ไม่ได้) */
+  saved: boolean;
   onRestart: () => void;
+  onBackToLevels: () => void;
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CALL_ANSWERED_CUE, SAFE_WORD } from "@/lib/live/constants";
+import { maskSensitive } from "@/lib/privacy/mask";
 import { buildSystemPrompt } from "./buildSystemPrompt";
 import { getScenario, listScenarios, parseScenario, ScenarioError, toPublicScenario } from "./load";
 
@@ -61,8 +62,20 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("ทุกข์ใจ");
   });
 
-  it("includes every part of the scenario", () => {
-    const s = police!;
+  it("forbids links, app names and real brands", () => {
+    expect(prompt).toContain("ห้ามพูดชื่อเว็บไซต์ ลิงก์ ชื่อแอป");
+    expect(prompt).toContain("แบรนด์จริง");
+  });
+
+  it("puts safety rules before the role", () => {
+    expect(prompt.indexOf("กฎความปลอดภัย")).toBeLessThan(prompt.indexOf("บทของคุณ"));
+  });
+});
+
+describe.each(listScenarios().map((s) => [s.id, s] as const))("scenario %s", (_id, s) => {
+  const prompt = buildSystemPrompt(s);
+
+  it("puts every part of the scenario into the prompt", () => {
     expect(prompt).toContain(s.persona);
     expect(prompt).toContain(s.callerId);
     expect(prompt).toContain(s.openingLine);
@@ -72,7 +85,16 @@ describe("buildSystemPrompt", () => {
     for (const v of Object.values(s.fakeVictimProfile)) expect(prompt).toContain(v);
   });
 
-  it("puts safety rules before the role", () => {
-    expect(prompt.indexOf("กฎความปลอดภัย")).toBeLessThan(prompt.indexOf("บทของคุณ"));
+  it("contains no number the AI could read out as a real account/ID/phone", () => {
+    const text = [s.openingLine, s.persona, ...s.escalationSteps, ...Object.values(s.fakeVictimProfile)].join(" ");
+    expect(maskSensitive(text).redactions).toEqual([]);
+  });
+
+  it("mentions no URL", () => {
+    expect(prompt).not.toMatch(/https?:\/\/|www\.|\.com|\.co\.th|\.go\.th/i);
+  });
+
+  it("tells the player the correct exit includes 1441", () => {
+    expect(s.correctExit).toContain("1441");
   });
 });

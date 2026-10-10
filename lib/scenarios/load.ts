@@ -1,9 +1,12 @@
 import type { Difficulty, PublicScenario, Scenario } from "@/lib/types";
+import bankAccountHacked from "@/scenarios/bank-account-hacked.json";
+import parcelIllegalGoods from "@/scenarios/parcel-illegal-goods.json";
 import policeMoneyLaundering from "@/scenarios/police-money-laundering.json";
+import revenueTaxRefund from "@/scenarios/revenue-tax-refund.json";
 
 // ด่านทั้งหมด — เพิ่มด่านใหม่: สร้าง scenarios/<id>.json แล้ว import มาใส่ในลิสต์นี้
 // ใช้ static import (ไม่อ่านไฟล์ด้วย fs) เพื่อให้ bundle ไปกับ Vercel ได้แน่นอน
-const RAW_SCENARIOS: unknown[] = [policeMoneyLaundering];
+const RAW_SCENARIOS: unknown[] = [bankAccountHacked, policeMoneyLaundering, parcelIllegalGoods, revenueTaxRefund];
 
 export class ScenarioError extends Error {}
 
@@ -82,8 +85,9 @@ export function getScenario(id: string): Scenario | null {
   return SCENARIOS.get(id) ?? null;
 }
 
+/** เรียงจากง่ายไปยาก */
 export function listScenarios(): Scenario[] {
-  return [...SCENARIOS.values()];
+  return [...SCENARIOS.values()].sort((a, b) => a.difficulty - b.difficulty);
 }
 
 export function toPublicScenario(s: Scenario): PublicScenario {
