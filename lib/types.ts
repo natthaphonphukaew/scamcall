@@ -54,6 +54,8 @@ export interface TranscriptTurn {
   speaker: Speaker;
   text: string;
   redactions: RedactionType[];
+  /** true = ข้อความที่ผู้เล่นกำลังพูด (ยังไม่ใช่ฉบับจริง) — มีเฉพาะตอนแสดงสด ไม่ถูกบันทึก */
+  pending?: true;
 }
 
 export type EndedBy = "player" | "timeout" | "error" | "declined";

@@ -16,6 +16,7 @@ export const COPY = {
   autoHangUpIn: "ตัดสายอัตโนมัติใน",
   safeWordHint: `พูดว่า "${SAFE_WORD}" หรือกดวางสายได้ทุกเมื่อ`,
   transcriptEmpty: "บทสนทนาจะขึ้นตรงนี้",
+  speakingNow: "กำลังพูด…",
   ended: "วางสายแล้ว",
   callLength: "ความยาวสาย",
   leaked: "ข้อมูลที่ดูเหมือนข้อมูลจริง (ถูกซ่อนแล้ว)",

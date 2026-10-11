@@ -55,6 +55,75 @@ describe("TranscriptBuilder", () => {
   });
 });
 
+describe("TranscriptBuilder interim (ข้อความระหว่างพูด)", () => {
+  it("shows the latest interim as a pending player turn, replacing older interim", () => {
+    const b = new TranscriptBuilder();
+    b.append("scammer", "ใช่เจ้าของเบอร์ไหมครับ", 1);
+    b.endScammerTurn();
+    b.setInterim("ไม่", 5);
+    b.setInterim("ไม่ใช่ครับ", 5.5);
+    const live = b.snapshot({ includeInterim: true });
+    expect(live.at(-1)).toMatchObject({ speaker: "player", text: "ไม่ใช่ครับ", pending: true, t: 5 });
+    expect(b.snapshot()).toHaveLength(1); // ไม่ใส่ interim ในผลที่บันทึก
+  });
+
+  it("drops the interim once the final transcription arrives", () => {
+    const b = new TranscriptBuilder();
+    b.setInterim("ไม่ใช่ครับ", 5);
+    b.append("player", "ไม่ใช่ครับ", 6);
+    expect(b.snapshot({ includeInterim: true })).toEqual([
+      { id: "0", t: 6, speaker: "player", text: "ไม่ใช่ครับ", redactions: [] },
+    ]);
+  });
+
+  it("keeps the interim when no final ever arrives (the bug Nut saw)", () => {
+    const b = new TranscriptBuilder();
+    b.append("scammer", "ใช่เจ้าของเบอร์ไหมครับ", 1);
+    b.endScammerTurn();
+    b.setInterim("ไม่รู้ครับ", 5);
+    b.append("scammer", "แล้วพอจะทราบไหมครับ", 7); // AI ตอบไปก่อน ฉบับจริงของผู้เล่นไม่มา
+    b.endScammerTurn();
+    b.flushInterim();
+    expect(b.snapshot().map((x) => [x.speaker, x.text])).toEqual([
+      ["scammer", "ใช่เจ้าของเบอร์ไหมครับ"],
+      ["player", "ไม่รู้ครับ"], // วางก่อนประโยคที่ AI ตอบ
+      ["scammer", "แล้วพอจะทราบไหมครับ"],
+    ]);
+  });
+
+  it("replaces a flushed interim with the late final text instead of duplicating it", () => {
+    const b = new TranscriptBuilder();
+    b.setInterim("ไม่รู้คับ", 5);
+    b.append("scammer", "ครับ", 7);
+    b.endScammerTurn();
+    b.flushInterim();
+    b.append("player", "ไม่รู้ครับ", 8); // ฉบับจริงมาช้า
+    b.append("player", " เลย", 8.2);
+    expect(b.snapshot().map((x) => [x.speaker, x.text])).toEqual([
+      ["player", "ไม่รู้ครับ เลย"],
+      ["scammer", "ครับ"],
+    ]);
+  });
+
+  it("treats a final that arrives after the next scammer sentence as a new turn", () => {
+    const b = new TranscriptBuilder();
+    b.setInterim("ฮัลโหล", 5);
+    b.append("scammer", "ครับ", 7);
+    b.endScammerTurn();
+    b.flushInterim();
+    b.append("scammer", "ได้ยินไหมครับ", 12);
+    b.endScammerTurn();
+    b.append("player", "ได้ยินครับ", 14);
+    expect(b.snapshot().map((x) => x.text)).toEqual(["ฮัลโหล", "ครับ", "ได้ยินไหมครับ", "ได้ยินครับ"]);
+  });
+
+  it("masks interim text too", () => {
+    const b = new TranscriptBuilder();
+    b.setInterim("บัญชี 123-4-56789-0", 1);
+    expect(b.snapshot({ includeInterim: true })[0].text).toBe("บัญชี [เลขบัญชี]");
+  });
+});
+
 describe("pcm base64", () => {
   it("round-trips PCM16 bytes", () => {
     const pcm = new Int16Array([0, 1, -1, 32767, -32768]);

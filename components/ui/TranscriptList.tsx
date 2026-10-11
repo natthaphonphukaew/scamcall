@@ -25,10 +25,10 @@ export function TranscriptList({ turns, className = "" }: { turns: TranscriptTur
           key={turn.id}
           className={`max-w-[85%] rounded-card bg-surface-raised px-4 py-2 ${
             turn.speaker === "player" ? "self-end" : "self-start"
-          }`}
+          } ${turn.pending ? "opacity-60" : ""}`}
         >
           <div className={`text-xs ${turn.speaker === "scammer" ? "text-scammer" : "text-player"}`}>
-            {SPEAKER_LABELS[turn.speaker]} · {formatClock(turn.t)}
+            {SPEAKER_LABELS[turn.speaker]} · {turn.pending ? COPY.speakingNow : formatClock(turn.t)}
           </div>
           <p className="leading-relaxed">{turn.text}</p>
         </li>

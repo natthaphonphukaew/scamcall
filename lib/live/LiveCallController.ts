@@ -2,6 +2,7 @@ import { GoogleGenAI, Modality, type LiveServerMessage, type Session } from "@go
 import type { CallSession, EndedBy, LiveTokenResponse, TranscriptTurn } from "@/lib/types";
 import { MicDeniedError, MicRecorder, PcmPlayer } from "./audio";
 import { CALL_ANSWERED_CUE, LIVE_API_VERSION } from "./constants";
+import { isLiveDebug, liveDebugLog } from "./debug";
 import { arrayBufferToBase64, base64ToPcm16Buffer, INPUT_MIME } from "./pcm";
 import { saveCallSession } from "./sessionStore";
 import { TranscriptBuilder } from "./transcript";
@@ -60,6 +61,8 @@ interface Call {
   // วัด latency: ผู้เล่นพูดท่อนล่าสุด → เสียงแรกของคำตอบ
   lastInputAt: number | null;
   awaitingReply: boolean;
+  /** ?debug=1 → log ทุก event การถอดเสียง (lib/live/debug.ts) */
+  debug: boolean;
 }
 
 function newCall(): Call {
@@ -77,6 +80,7 @@ function newCall(): Call {
     ended: false,
     lastInputAt: null,
     awaitingReply: false,
+    debug: isLiveDebug(),
   };
 }
 
@@ -275,21 +279,45 @@ export class LiveCallController {
       c.player?.push(base64ToPcm16Buffer(part.inlineData.data));
     }
 
+    const debug = c.debug;
+    if (sc.modelTurn?.parts?.some((p) => p.inlineData?.data)) liveDebugLog(debug, t, "model audio");
+
     let transcriptChanged = false;
     if (sc.outputTranscription?.text) {
+      liveDebugLog(debug, t, "output", { text: sc.outputTranscription.text });
       c.builder.append("scammer", sc.outputTranscription.text, t);
       transcriptChanged = true;
     }
+    if (sc.interimInputTranscription?.text) {
+      liveDebugLog(debug, t, "input (interim)", { text: sc.interimInputTranscription.text });
+      c.builder.setInterim(sc.interimInputTranscription.text, t);
+      c.lastInputAt = performance.now();
+      c.awaitingReply = true;
+      transcriptChanged = true;
+    }
     if (sc.inputTranscription?.text) {
+      liveDebugLog(debug, t, "input (final)", {
+        text: sc.inputTranscription.text,
+        finished: sc.inputTranscription.finished,
+      });
       c.builder.append("player", sc.inputTranscription.text, t);
       c.lastInputAt = performance.now();
       c.awaitingReply = true;
       transcriptChanged = true;
     }
-    if (sc.interrupted) c.player?.clear();
+    if (sc.interrupted) {
+      liveDebugLog(debug, t, "interrupted");
+      c.player?.clear();
+    }
     if (sc.interrupted || sc.turnComplete) c.builder.endScammerTurn();
+    if (sc.turnComplete) {
+      liveDebugLog(debug, t, "turnComplete");
+      // คนร้ายพูดจบแล้ว แต่ประโยคก่อนหน้าของผู้เล่นยังไม่มีฉบับจริง → เก็บข้อความระหว่างพูดไว้ ไม่ให้หาย
+      c.builder.flushInterim();
+      transcriptChanged = true;
+    }
 
-    if (transcriptChanged) this.set({ turns: c.builder.snapshot() });
+    if (transcriptChanged) this.set({ turns: c.builder.snapshot({ includeInterim: true }) });
   }
 
   /** ต่อสายไม่ติด → กลับไปหน้าเรียกเข้าพร้อม error ให้กดรับใหม่ได้ */
@@ -307,6 +335,7 @@ export class LiveCallController {
     c.ended = true;
     const hangupT = c.callStartMs === null ? 0 : round1((performance.now() - c.callStartMs) / 1000);
     release(c);
+    c.builder.flushInterim(); // ผู้เล่นวางสายระหว่างพูด → เก็บประโยคสุดท้ายไว้ด้วย
 
     const result: CallSession = {
       sessionId: c.id,
