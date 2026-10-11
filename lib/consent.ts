@@ -6,13 +6,16 @@ import { useSyncExternalStore } from "react";
 // เก็บใน localStorage ของเครื่องผู้เล่นเท่านั้น — ไม่ส่งไป server
 
 export interface Consent {
-  /** เข้าใจว่าเป็นการจำลองเพื่อการฝึก — ต้องเป็น true ถึงจะรับสายได้ */
+  /** เข้าใจว่าเป็นการจำลอง + เสียงถูกส่งไปประมวลผลที่ Google — ต้องเป็น true ถึงจะรับสายได้ */
   acknowledged: true;
+  /** ยืนยันว่าอายุ 18 ปีขึ้นไป (เงื่อนไข Gemini API) — ต้องเป็น true */
+  adult: true;
   /** ยินยอมให้เก็บ transcript (ที่ซ่อนข้อมูลแล้ว) ไว้ทำ Scam X-Ray */
   saveTranscript: boolean;
 }
 
-const KEY = "scamcall:consent:v1";
+// v2 (2026-10-11): เพิ่มข้อแจ้งเรื่อง Gemini free tier + อายุ 18+ → ทุกคนต้องยินยอมใหม่
+const KEY = "scamcall:consent:v2";
 const CHANGE_EVENT = "scamcall:consent-change";
 const SERVER = "__server__";
 
@@ -28,7 +31,9 @@ function parse(raw: string | null): Consent | null {
   if (!raw) return null;
   try {
     const v = JSON.parse(raw) as Partial<Consent>;
-    return v.acknowledged === true ? { acknowledged: true, saveTranscript: v.saveTranscript === true } : null;
+    return v.acknowledged === true && v.adult === true
+      ? { acknowledged: true, adult: true, saveTranscript: v.saveTranscript === true }
+      : null;
   } catch {
     return null;
   }

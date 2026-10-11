@@ -14,14 +14,16 @@ interface ConsentFormProps {
 /** ข้อความแจ้ง + ขอความยินยอม ใช้ทั้งหน้าแรกและตอนเปิดลิงก์ด่านตรงๆ */
 export function ConsentForm({ initial, onSubmit }: ConsentFormProps) {
   const [acknowledged, setAcknowledged] = useState(initial?.acknowledged ?? false);
+  const [adult, setAdult] = useState(initial?.adult ?? false);
   const [saveTranscript, setSaveTranscript] = useState(initial?.saveTranscript ?? true);
+  const canStart = acknowledged && adult;
 
   return (
     <form
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
-        if (acknowledged) onSubmit({ acknowledged: true, saveTranscript });
+        if (canStart) onSubmit({ acknowledged: true, adult: true, saveTranscript });
       }}
     >
       <h2 className="text-lg font-bold">{COPY.consentTitle}</h2>
@@ -34,7 +36,7 @@ export function ConsentForm({ initial, onSubmit }: ConsentFormProps) {
       <label className="flex items-start gap-3 rounded-card bg-surface-raised p-3">
         <input
           type="checkbox"
-          className="mt-1 size-5 accent-accept"
+          className="mt-1 size-5 shrink-0 accent-accept"
           checked={acknowledged}
           onChange={(e) => setAcknowledged(e.target.checked)}
           required
@@ -42,17 +44,28 @@ export function ConsentForm({ initial, onSubmit }: ConsentFormProps) {
         <span>{COPY.consentAcknowledge}</span>
       </label>
 
+      <label className="flex items-start gap-3 rounded-card bg-surface-raised p-3">
+        <input
+          type="checkbox"
+          className="mt-1 size-5 shrink-0 accent-accept"
+          checked={adult}
+          onChange={(e) => setAdult(e.target.checked)}
+          required
+        />
+        <span>{COPY.consentAdult}</span>
+      </label>
+
       <label className="flex items-start gap-3 rounded-card bg-surface-raised p-3 text-sm">
         <input
           type="checkbox"
-          className="mt-1 size-5 accent-accept"
+          className="mt-1 size-5 shrink-0 accent-accept"
           checked={saveTranscript}
           onChange={(e) => setSaveTranscript(e.target.checked)}
         />
         <span>{COPY.consentSaveTranscript}</span>
       </label>
 
-      <Button type="submit" variant="accept" disabled={!acknowledged}>
+      <Button type="submit" variant="accept" disabled={!canStart}>
         {COPY.startTraining}
       </Button>
     </form>
