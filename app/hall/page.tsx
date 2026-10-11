@@ -22,7 +22,7 @@ export default function HallPage() {
         <Boards />
       </Suspense>
       <nav className="flex justify-between text-sm underline">
-        <Link href="/levels">{COPY.backToLevels}</Link>
+        <Link href="/campus">{COPY.backToCampus}</Link>
         <Link href="/me">{COPY.viewProfile}</Link>
       </nav>
     </Screen>

@@ -84,7 +84,7 @@ export default function MeController({ levelCount }: { levelCount: number }) {
       </section>
 
       {welcome && me.profile && (
-        <Link href="/levels" className="rounded-card bg-accept px-5 py-3 text-center font-medium text-white">
+        <Link href="/campus" className="rounded-card bg-accept px-5 py-3 text-center font-medium text-white">
           {COPY.goPlay}
         </Link>
       )}
@@ -147,7 +147,7 @@ export default function MeController({ levelCount }: { levelCount: number }) {
       </section>
 
       <nav className="flex justify-between text-sm underline">
-        <Link href="/levels">{COPY.backToLevels}</Link>
+        <Link href="/campus">{COPY.backToCampus}</Link>
         <Link href="/hall">{COPY.viewHall}</Link>
       </nav>
     </Screen>

@@ -18,7 +18,7 @@ export default function StartPanel() {
         writeConsent(c);
         // ยังไม่มีตัวละคร → สร้างก่อน (ข้ามได้ ถ้าระบบผู้เล่นปิด/ยังโหลดไม่เสร็จ — สร้างให้อัตโนมัติตอนเล่นจบสายแรก)
         const needsProfile = player.status === "ready" && player.me?.profile === null;
-        router.push(needsProfile ? "/me?welcome=1" : "/levels");
+        router.push(needsProfile ? "/me?welcome=1" : "/campus");
       }}
     />
   );

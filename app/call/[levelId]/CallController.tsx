@@ -66,7 +66,7 @@ export default function CallController({ scenario }: { scenario: PublicScenario 
           saved={consent.saveTranscript}
           onOpenXRay={() => router.push(`/xray/${call.result!.sessionId}`)}
           onRestart={call.reset}
-          onBackToLevels={() => router.push("/levels")}
+          onBackToCampus={() => router.push("/campus")}
         />
       );
   }

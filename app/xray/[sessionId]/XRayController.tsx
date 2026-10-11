@@ -62,8 +62,8 @@ export default function XRayController({ sessionId }: { sessionId: string }) {
     return (
       <Screen className="justify-center gap-4 text-center">
         <p className="text-muted">{COPY.sessionMissing}</p>
-        <Link href="/levels" className="underline">
-          {COPY.backToLevels}
+        <Link href="/campus" className="underline">
+          {COPY.backToCampus}
         </Link>
       </Screen>
     );
@@ -110,7 +110,7 @@ export default function XRayController({ sessionId }: { sessionId: string }) {
         playtest: playtest ? { ...playtest, status: playtestStatus ?? "sending" } : null,
       }}
       onRetryLevel={() => router.push(`/call/${session.levelId}`)}
-      onBackToLevels={() => router.push("/levels")}
+      onBackToCampus={() => router.push("/campus")}
     />
   );
 }

@@ -15,7 +15,7 @@ export function XRayScreen({
   score,
   game,
   onRetryLevel,
-  onBackToLevels,
+  onBackToCampus,
 }: XRayScreenProps) {
   const hangupT = session.endedBy === "declined" ? null : session.hangupT;
 
@@ -63,7 +63,7 @@ export function XRayScreen({
         <Button variant="accept" onClick={onRetryLevel}>
           {COPY.restart}
         </Button>
-        <Button onClick={onBackToLevels}>{COPY.backToLevels}</Button>
+        <Button onClick={onBackToCampus}>{COPY.backToCampus}</Button>
       </footer>
     </Screen>
   );

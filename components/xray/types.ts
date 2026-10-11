@@ -23,7 +23,7 @@ export interface XRayScreenProps {
   score: ScoreResult;
   game: GameResultProps;
   onRetryLevel: () => void;
-  onBackToLevels: () => void;
+  onBackToCampus: () => void;
 }
 
 export interface PressureChartProps {

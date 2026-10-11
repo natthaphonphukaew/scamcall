@@ -63,10 +63,14 @@ app/
   api/token/route.ts       # ออก ephemeral token ให้ Live API
   api/analyze/route.ts     # ส่ง transcript → ได้ JSON แท็กเทคนิค
 components/                # IncomingCallScreen, InCallScreen, XRayTimeline, PressureChart, ScoreCard
+  campus/                  # ฉาก 3D แคมปัส (R3F), ป้าย overlay, StoryCard, HUD, แผนที่ 2D สำรอง
 lib/
   live/                    # เชื่อมต่อ Live API, audio worklet, จัดการ transcript
   scenarios/               # loader + types
+  campus/                  # campus.json (สร้างจาก OSM), NPC, จุดยืน, เรขาคณิต
+  game/                    # ฉายา, XP/เลเวล/เหรียญ, บอร์ด
   scoring.ts
+scripts/                   # fetch-osm.mjs + build-campus.mjs (สร้าง lib/campus/campus.json)
 scenarios/*.json           # ไฟล์ด่าน (ดูข้อ 6)
 data/                      # dataset อ้างอิง (ดูข้อ 8)
 public/                    # ringtone, icons, manifest
@@ -175,7 +179,7 @@ Output ของ `/api/analyze` (บังคับด้วย JSON schema):
 ### v2 — ScamCall: Campus (เกม 3D แคมปัส มจธ.) · ดีไซน์ทั้งหมดใน `docs/GAME_SPEC.md`
 - [x] Phase 0: `docs/GAME_SPEC.md`
 - [ ] Phase 1: ตัวตนผู้เล่น (guest + Google), XP/เลเวล/เหรียญ/ฉายา, `/me`, `/hall` — guest + XP + เหรียญ + บอร์ด ทดสอบกับ Supabase จริงผ่านแล้ว (2026-10-11) · เหลือทดสอบ login Google (`docs/DEPLOY.md` ข้อ 7C)
-- [ ] Phase 2: แผนที่ 3D (React Three Fiber) + NPC + StoryCard (รอรายชื่อ/รูปสถานที่จาก Nut)
+- [ ] Phase 2: แผนที่ 3D (React Three Fiber) + NPC + StoryCard (โค้ดเสร็จ — `/campus` ผังจริงจาก OSM + 7 แลนด์มาร์ก · รอ Nut ทดสอบ FPS บนมือถือจริงหลัง deploy)
 - [ ] Phase 3: แชทจำลอง + ด่านลงทุน/งานออนไลน์
 - [ ] Phase 4: animation / X-Ray dramatic / เสียง / การ์ดแชร์
 - [ ] Phase 5: dataset AOC 1441 → 6–8 ด่าน + ทดสอบมือถือจริง

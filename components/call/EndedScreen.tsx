@@ -14,7 +14,7 @@ export function EndedScreen({
   saved,
   onOpenXRay,
   onRestart,
-  onBackToLevels,
+  onBackToCampus,
 }: EndedScreenProps) {
   const leaked = [
     ...new Set(result.turns.filter((t) => t.speaker === "player").flatMap((t) => t.redactions)),
@@ -52,8 +52,8 @@ export function EndedScreen({
         <Button onClick={onRestart} className="w-full">
           {COPY.restart}
         </Button>
-        <Button onClick={onBackToLevels} className="w-full">
-          {COPY.backToLevels}
+        <Button onClick={onBackToCampus} className="w-full">
+          {COPY.backToCampus}
         </Button>
       </footer>
     </Screen>

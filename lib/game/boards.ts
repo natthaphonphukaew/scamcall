@@ -92,8 +92,13 @@ export function computeBoards(
       .filter((e) => e.value > 0),
   );
 
-  const allPlays = [...playsByUser.values()].flat();
-  const levels = levelIds.map((levelId) => {
+  const levels = computeLevelStats([...playsByUser.values()].flat(), levelIds);
+  return { resilient, improved, funny, levels };
+}
+
+/** สถิติรวมของทุกคนต่อด่าน (ไม่ระบุตัว) — ใช้ใน /hall และ StoryCard บนแผนที่ */
+export function computeLevelStats(allPlays: PlayRecord[], levelIds: readonly string[]): LevelStat[] {
+  return levelIds.map((levelId) => {
     const ps = allPlays.filter((p) => p.levelId === levelId);
     const faced = ps.filter((p) => p.endedBy !== "declined");
     return {
@@ -103,6 +108,4 @@ export function computeBoards(
       avgLateSeconds: faced.length ? round1(faced.reduce((s, p) => s + lateSecondsOf(p), 0) / faced.length) : 0,
     };
   });
-
-  return { resilient, improved, funny, levels };
 }

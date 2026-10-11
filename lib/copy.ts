@@ -83,6 +83,20 @@ export const COPY = {
   playsCount: "สายที่เล่น",
   savedFriends: "ช่วยเพื่อนแล้ว",
 
+  // ---- แผนที่แคมปัส (docs/GAME_SPEC.md ข้อ 3, 9) ----
+  campusTitle: "แคมปัสบางมด",
+  campusHint: "แตะเพื่อนที่มี ❗ เพื่อเข้าไปช่วย",
+  campusLoading: "กำลังสร้างแคมปัส…",
+  levelList: "📋 รายการด่าน",
+  backToCampus: "กลับไปที่แคมปัส",
+  close: "ปิด",
+  channelCall: "📞 โทรศัพท์",
+  channelChat: "💬 แชท",
+  npcSavedChip: "✓ เคยช่วยสำเร็จ",
+  comingSoon: "⏳ เร็วๆ นี้ (ด่านแชท)",
+  becomeNpc: (name: string) => `สวมบทเป็น${name}`,
+  statScammed: (percent: number, plays: number) => `${percent}% โดนหลอก (${plays} สาย)`,
+
   // ---- Hall (docs/GAME_SPEC.md ข้อ 8) ----
   hallTitle: "Hall of Bangmod",
   hallHint: "แสดงแค่ฉายา ไม่มีชื่อจริง · อัปเดตทุกครั้งที่เปิดหน้า",

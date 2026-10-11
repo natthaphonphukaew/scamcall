@@ -30,5 +30,5 @@ export interface EndedScreenProps {
   /** ไปหน้า Scam X-Ray (ใช้ได้เฉพาะเมื่อ saved) */
   onOpenXRay: () => void;
   onRestart: () => void;
-  onBackToLevels: () => void;
+  onBackToCampus: () => void;
 }
