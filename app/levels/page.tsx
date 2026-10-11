@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PlayerChip } from "@/components/game/PlayerChip";
 import { PlaytestBadge } from "@/components/playtest/PlaytestBadge";
 import { Screen } from "@/components/ui/Screen";
 import { COPY, DIFFICULTY_LABELS } from "@/lib/copy";
@@ -17,9 +18,12 @@ export default function LevelsPage() {
           <h1 className="text-2xl font-bold">{COPY.levelsTitle}</h1>
           <p className="text-sm text-muted">{COPY.levelsHint}</p>
         </div>
-        <Link href="/leaderboard" className="shrink-0 rounded-full bg-surface-raised px-3 py-1 text-sm">
-          {COPY.leaderboardTitle}
-        </Link>
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <PlayerChip />
+          <Link href="/hall" className="rounded-full bg-surface-raised px-3 py-1 text-sm">
+            🏆 Hall
+          </Link>
+        </div>
       </header>
 
       <ol className="flex flex-col gap-3">

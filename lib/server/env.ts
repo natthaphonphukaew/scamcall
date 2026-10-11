@@ -1,4 +1,5 @@
 import { DEFAULT_MAX_CALL_SECONDS, DEFAULT_VOICE } from "@/lib/live/constants";
+import { normalizeSupabaseUrl } from "@/lib/supabase/url";
 
 export interface ServerEnv {
   apiKey: string;
@@ -33,17 +34,9 @@ export interface SupabaseEnv {
   secretKey: string;
 }
 
-/**
- * supabase-js ต้องการแค่ origin ของโปรเจกต์ — ถ้าวาง URL ของ Data API มาทั้งเส้น (…/rest/v1/)
- * client จะต่อ path ซ้ำเป็น /rest/v1/rest/v1/… แล้วได้ 404 จึงตัดส่วนเกินออกให้
- */
-export function normalizeSupabaseUrl(raw: string): string {
-  return raw.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
-}
-
-/** ไม่ตั้ง = ไม่มี database (leaderboard/playtest ตอบ 503) */
+/** ไม่ตั้ง = ไม่มี database (บอร์ด/playtest ตอบ 503) · ใช้ SUPABASE_URL หรือ NEXT_PUBLIC_SUPABASE_URL ก็ได้ */
 export function getSupabaseEnv(): SupabaseEnv | null {
-  const url = process.env.SUPABASE_URL?.trim();
+  const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)?.trim();
   const secretKey = process.env.SUPABASE_SECRET_KEY?.trim();
   return url && secretKey ? { url: normalizeSupabaseUrl(url), secretKey } : null;
 }

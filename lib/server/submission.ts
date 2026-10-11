@@ -5,7 +5,7 @@ import { getSigningSecret } from "./env";
 import { errorResponse } from "./http";
 import { verifyResult } from "./signedResult";
 
-// ขั้นตอนร่วมของ POST /api/leaderboard และ /api/playtest: เปิดใช้งานอยู่ไหม → อ่าน body → ตรวจลายเซ็น
+// ขั้นตอนร่วมของ POST /api/plays และ /api/playtest: เปิดใช้งานอยู่ไหม → อ่าน body → ตรวจลายเซ็น
 
 export type Checked = { ok: true; body: Record<string, unknown>; result: ResultPayload } | { ok: false; response: Response };
 

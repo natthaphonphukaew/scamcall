@@ -77,6 +77,38 @@
 - [ ] แผนสำรอง: อัดหน้าจอสายเดโมที่ดีไว้ 1 คลิป + X-Ray ของ `fixtures/calls/*` (กรณีเน็ต/โควตามีปัญหา)
 - [ ] โควตา free tier: อย่าให้ทั้งห้องลองพร้อมกัน — rate limit อยู่ที่ระดับ project ของ Gemini
 
+## 7. ระบบผู้เล่น — guest + login Google (Phase 1 ของ `docs/GAME_SPEC.md`)
+
+**A. Database**
+1. Supabase → **SQL Editor** → วางทั้งไฟล์ `supabase/migrations/002_game.sql` → **Run** (ได้ตาราง `profiles`, `plays`, `badges`)
+
+**B. Guest (anonymous sign-in)**
+2. **Authentication → Sign In / Providers → Anonymous Sign-Ins** → เปิด
+3. **Authentication → Rate Limits** → "anonymous sign-ins" ค่าเริ่มต้น 30 ครั้ง/ชม./IP — **ทั้งห้องเรียนใช้ Wi-Fi เดียวกัน = IP เดียว** → เพิ่มเป็น ~300 ก่อนเดโม/ทดสอบกับเพื่อน
+4. (แนะนำภายหลัง) เปิด CAPTCHA (Turnstile) กันคนสร้าง guest ถล่ม — ต้องแก้โค้ดส่ง captcha token เพิ่ม บอก Claude ก่อนเปิด
+
+**C. Login Google**
+5. [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → **OAuth consent screen** (External, ชื่อแอป ScamCall) → **Credentials → Create OAuth client ID** (Web application)
+   - Authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback` (ดู URL นี้ได้ในหน้า Google provider ของ Supabase)
+6. Supabase → **Authentication → Sign In / Providers → Google** → เปิด → ใส่ Client ID + Client Secret
+7. Supabase → **Authentication → Sign In / Providers** (ส่วน settings) → เปิด **Allow manual linking** (ให้ guest ผูก Google ได้)
+8. Supabase → **Authentication → URL Configuration**
+   - Site URL: `https://scamcall.vercel.app`
+   - Redirect URLs: `http://localhost:3000/auth/callback` และ `https://scamcall.vercel.app/auth/callback`
+
+**D. Env**
+9. Supabase → **Project Settings → API Keys** → คัดลอก **Publishable key** (`sb_publishable_...`)
+10. ใส่ใน `.env.local` และ Vercel (Production + Preview):
+    - `NEXT_PUBLIC_SUPABASE_URL` = `https://<project-ref>.supabase.co`
+    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = `sb_publishable_...`
+    - ค่า `NEXT_PUBLIC_*` ถูกฝังตอน build → บน Vercel ต้อง **Redeploy** หลังเพิ่ม
+
+**E. ทดสอบ**
+- เปิดหน้าแรก → ยินยอม → ได้หน้า "สร้างตัวละครของคุณ" → บันทึก → เล่น 1 สาย → X-Ray ต้องขึ้น XP + เหรียญ "สายแรกในชีวิต"
+- `/me` → "เก็บความคืบหน้าด้วย Google" → login → กลับมา `/me` ต้องขึ้น "เชื่อมกับ Google แล้ว" และ XP เดิมอยู่ครบ
+- `/hall` → เห็นฉายาตัวเอง (บอร์ดภูมิคุ้มกันต้องเล่น ≥ 3 สาย)
+- Supabase → Authentication → Users: guest แสดงเป็น "Anonymous"
+
 ## ⚠️ เงื่อนไข Gemini API ที่ต้องรู้ก่อนเปิดให้คนอื่นใช้ (เช็ก ai.google.dev/gemini-api/terms เมื่อ 2026-10-11)
 
 1. **Free tier (Unpaid Services):** Google อาจใช้ข้อมูลที่ส่งเข้าไป (เสียงที่คุย, transcript ที่ส่งวิเคราะห์) และคำตอบ ไปปรับปรุงผลิตภัณฑ์/train โมเดล และ**อาจมีคนอ่านตรวจ** (ตัดการเชื่อมโยงกับบัญชีก่อน) — เงื่อนไขแนะนำว่าไม่ควรส่งข้อมูลส่วนตัว

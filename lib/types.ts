@@ -19,6 +19,9 @@ export type RedactionType =
 
 export type Difficulty = 1 | 2 | 3;
 
+/** ช่องทางของด่าน — "chat" มาใน Phase 3 (docs/GAME_SPEC.md ข้อ 10) */
+export type Channel = "call" | "chat";
+
 export interface Scenario {
   id: string;
   title: string;
@@ -31,6 +34,8 @@ export interface Scenario {
   targetInfo: string[];
   fakeVictimProfile: Record<string, string>;
   correctExit: string;
+  /** ไม่ระบุ = "call" */
+  channel?: Channel;
   voice?: string;
   maxSeconds?: number;
 }
@@ -95,12 +100,14 @@ export type LevelSummary = Pick<Scenario, "id" | "title" | "callerId" | "correct
 export interface ResultPayload {
   sessionId: string;
   levelId: string;
+  channel: Channel;
   endedBy: EndedBy;
   hangupT: number;
   shouldHangUpAt: number;
   score: number;
   grade: ScoreResult["grade"];
   complied: boolean;
+  saidCallback: boolean;
   leakedCount: number;
   /** epoch ms */
   issuedAt: number;

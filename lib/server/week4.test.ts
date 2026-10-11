@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { lateSeconds, playtestCsv, summarizePlaytest } from "@/lib/playtest/summary";
 import type { ResultPayload } from "@/lib/types";
 import type { PlaytestRun } from "./db";
-import { normalizeNickname, normalizeTesterCode } from "./nickname";
+import { normalizeTesterCode } from "./testerCode";
 import { RESULT_MAX_AGE_MS, signResult, verifyResult } from "./signedResult";
 
 const SECRET = "x".repeat(32);
@@ -11,12 +11,14 @@ const NOW = 1_800_000_000_000;
 const payload: ResultPayload = {
   sessionId: "s1",
   levelId: "police-money-laundering",
+  channel: "call",
   endedBy: "player",
   hangupT: 20,
   shouldHangUpAt: 16,
   score: 100,
   grade: "strong",
   complied: false,
+  saidCallback: false,
   leakedCount: 0,
   issuedAt: NOW,
 };
@@ -48,23 +50,6 @@ describe("signed results", () => {
     expect(verifyResult(signed, SECRET, NOW + RESULT_MAX_AGE_MS - 1)).not.toBeNull();
     expect(verifyResult(signed, SECRET, NOW + RESULT_MAX_AGE_MS + 1)).toBeNull();
   });
-});
-
-describe("normalizeNickname", () => {
-  it.each([
-    ["  นัท   KMUTT ", "นัท KMUTT"],
-    ["Nut", "Nut"],
-    ["ab​c", "abc"],
-  ])("cleans %j", (raw, clean) => {
-    expect(normalizeNickname(raw)).toBe(clean);
-  });
-
-  it.each([["a"], ["x".repeat(21)], ["F u c k"], ["0812345678"], ["นัท 123456"], [42], [""]])(
-    "rejects %j",
-    (raw) => {
-      expect(normalizeNickname(raw)).toBeNull();
-    },
-  );
 });
 
 describe("normalizeTesterCode", () => {

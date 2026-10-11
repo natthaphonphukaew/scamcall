@@ -9,7 +9,8 @@ export class DbUnavailableError extends Error {}
 
 let cached: { key: string; client: SupabaseClient } | null = null;
 
-function db(): SupabaseClient {
+/** client ที่ใช้ secret key — ใช้ใน lib/server/* เท่านั้น */
+export function db(): SupabaseClient {
   const env = getSupabaseEnv();
   if (!env) throw new DbUnavailableError("SUPABASE_URL / SUPABASE_SECRET_KEY not set");
   const key = `${env.url}|${env.secretKey}`;
@@ -32,58 +33,11 @@ export type InsertOutcome = "ok" | "duplicate";
 
 const UNIQUE_VIOLATION = "23505";
 
-async function insert(table: string, row: Record<string, unknown>): Promise<InsertOutcome> {
+export async function insert(table: string, row: Record<string, unknown>): Promise<InsertOutcome> {
   const { error } = await db().from(table).insert(row);
   if (!error) return "ok";
   if (error.code === UNIQUE_VIOLATION) return "duplicate";
   throw new Error(`${table} insert failed: ${error.message}`);
-}
-
-// ---- leaderboard ----
-
-export interface LeaderboardRow {
-  nickname: string;
-  levelId: string;
-  score: number;
-  hangupT: number;
-  createdAt: string;
-}
-
-export function insertLeaderboard(nickname: string, r: ResultPayload): Promise<InsertOutcome> {
-  return insert("leaderboard", {
-    session_id: r.sessionId,
-    nickname,
-    level_id: r.levelId,
-    score: r.score,
-    hangup_t: r.hangupT,
-  });
-}
-
-/** อันดับสูงสุดของทุกด่าน (คะแนนมากก่อน เสมอกันใครวางสายเร็วกว่าชนะ) */
-export async function topScores(perLevel = 10): Promise<Map<string, LeaderboardRow[]>> {
-  const { data, error } = await db()
-    .from("leaderboard")
-    .select("nickname, level_id, score, hangup_t, created_at")
-    .order("score", { ascending: false })
-    .order("hangup_t", { ascending: true })
-    .limit(500);
-  if (error) throw new Error(`leaderboard read failed: ${error.message}`);
-
-  const byLevel = new Map<string, LeaderboardRow[]>();
-  for (const row of data ?? []) {
-    const list = byLevel.get(row.level_id) ?? [];
-    if (list.length < perLevel) {
-      list.push({
-        nickname: row.nickname,
-        levelId: row.level_id,
-        score: row.score,
-        hangupT: row.hangup_t,
-        createdAt: row.created_at,
-      });
-    }
-    byLevel.set(row.level_id, list);
-  }
-  return byLevel;
 }
 
 // ---- playtest ----

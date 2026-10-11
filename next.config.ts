@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // /leaderboard เดิม (Week 4) → Hall ของระบบเกม
+  async redirects() {
+    return [{ source: "/leaderboard", destination: "/hall", permanent: false }];
+  },
   // security headers ตามแนวทาง PWA ของ Next (node_modules/next/dist/docs/01-app/02-guides/progressive-web-apps.md)
   async headers() {
     return [

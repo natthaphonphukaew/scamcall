@@ -14,8 +14,9 @@ export interface Consent {
   saveTranscript: boolean;
 }
 
-// v2 (2026-10-11): เพิ่มข้อแจ้งเรื่อง Gemini free tier + อายุ 18+ → ทุกคนต้องยินยอมใหม่
-const KEY = "scamcall:consent:v2";
+// v2 (2026-10-11): เพิ่มข้อแจ้งเรื่อง Gemini free tier + อายุ 18+
+// v3 (2026-10-11): เพิ่มข้อแจ้งเรื่องฉายา/คะแนนบนบอร์ดเกม → ทุกคนต้องยินยอมใหม่
+const KEY = "scamcall:consent:v3";
 const CHANGE_EVENT = "scamcall:consent-change";
 const SERVER = "__server__";
 

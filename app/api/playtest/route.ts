@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { insertPlaytestRun } from "@/lib/server/db";
 import { clientIp, errorResponse } from "@/lib/server/http";
-import { normalizeTesterCode } from "@/lib/server/nickname";
+import { normalizeTesterCode } from "@/lib/server/testerCode";
 import { createRateLimiter } from "@/lib/server/rateLimit";
 import { readSignedSubmission } from "@/lib/server/submission";
 

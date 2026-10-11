@@ -1,33 +1,38 @@
+import type { PlayResponse } from "@/lib/game/api";
 import type { SignedResult } from "@/lib/types";
 
-// ส่งผลสาย (ที่ server เซ็นแล้ว) ขึ้น leaderboard / playtest จาก browser
+// ส่งผลสาย (ที่ server เซ็นแล้ว) เข้าระบบผู้เล่น / playtest จาก browser
 
-export type SubmitOutcome = "sent" | "duplicate" | "bad_nickname" | "disabled" | "error";
+export type SubmitOutcome = "sent" | "duplicate" | "disabled" | "error";
 
-async function post(url: string, body: unknown): Promise<SubmitOutcome> {
+function outcomeOf(res: Response): SubmitOutcome {
+  if (res.ok) return "sent";
+  if (res.status === 409) return "duplicate";
+  if (res.status === 503) return "disabled";
+  return "error";
+}
+
+async function post(url: string, body: unknown): Promise<Response | null> {
   try {
-    const res = await fetch(url, {
+    return await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    if (res.ok) return "sent";
-    if (res.status === 409) return "duplicate";
-    if (res.status === 503) return "disabled";
-    if (res.status === 400) {
-      const { error } = (await res.json().catch(() => ({}))) as { error?: string };
-      if (error === "bad_nickname") return "bad_nickname";
-    }
-    return "error";
   } catch {
-    return "error";
+    return null;
   }
 }
 
-export function submitLeaderboard(nickname: string, result: SignedResult): Promise<SubmitOutcome> {
-  return post("/api/leaderboard", { nickname, result });
+/** บันทึกผลของผู้เล่นปัจจุบัน → XP / เลเวล / เหรียญ */
+export async function submitPlay(result: SignedResult): Promise<{ outcome: SubmitOutcome; play: PlayResponse | null }> {
+  const res = await post("/api/plays", { result });
+  if (!res) return { outcome: "error", play: null };
+  const outcome = outcomeOf(res);
+  return { outcome, play: outcome === "sent" ? ((await res.json()) as PlayResponse) : null };
 }
 
-export function submitPlaytest(testerCode: string, round: number, result: SignedResult): Promise<SubmitOutcome> {
-  return post("/api/playtest", { testerCode, round, result });
+export async function submitPlaytest(testerCode: string, round: number, result: SignedResult): Promise<SubmitOutcome> {
+  const res = await post("/api/playtest", { testerCode, round, result });
+  return res ? outcomeOf(res) : "error";
 }

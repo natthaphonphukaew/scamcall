@@ -48,6 +48,7 @@ export function parseScenario(raw: unknown): Scenario {
   ) {
     fail(id, "fakeVictimProfile", "must be an object of strings");
   }
+  if (r.channel !== undefined && r.channel !== "call" && r.channel !== "chat") fail(id, "channel", 'must be "call" or "chat"');
   if (r.voice !== undefined && !isNonEmptyString(r.voice)) fail(id, "voice", "must be a non-empty string");
   if (r.maxSeconds !== undefined && (typeof r.maxSeconds !== "number" || r.maxSeconds <= 0)) {
     fail(id, "maxSeconds", "must be a positive number");
@@ -65,6 +66,7 @@ export function parseScenario(raw: unknown): Scenario {
     targetInfo: r.targetInfo as string[],
     fakeVictimProfile: profile as Record<string, string>,
     correctExit: r.correctExit as string,
+    channel: (r.channel as Scenario["channel"]) ?? "call",
     voice: r.voice as string | undefined,
     maxSeconds: r.maxSeconds as number | undefined,
   };

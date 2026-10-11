@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
 import { COPY, ENDED_BY_LABELS } from "@/lib/copy";
 import { PressureChart } from "./PressureChart";
+import { GameResult } from "./GameResult";
 import { ScoreCard } from "./ScoreCard";
-import { ShareResult } from "./ShareResult";
 import type { XRayScreenProps } from "./types";
 import { XRayTimeline } from "./XRayTimeline";
 
@@ -13,7 +13,7 @@ export function XRayScreen({
   session,
   analysis,
   score,
-  share,
+  game,
   onRetryLevel,
   onBackToLevels,
 }: XRayScreenProps) {
@@ -57,7 +57,7 @@ export function XRayScreen({
         </div>
       </section>
 
-      <ShareResult {...share} />
+      <GameResult {...game} />
 
       <footer className="flex flex-col gap-2">
         <Button variant="accept" onClick={onRetryLevel}>

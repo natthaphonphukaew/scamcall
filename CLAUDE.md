@@ -170,7 +170,17 @@ Output ของ `/api/analyze` (บังคับด้วย JSON schema):
 - [ ] PWA installable, ทดสอบบนมือถือจริง (โค้ดเสร็จ — รอทดสอบหลัง deploy เพราะไมค์บนมือถือต้องใช้ HTTPS)
 - [ ] ทดสอบกับเพื่อน 5–10 คน: วัดเวลาวางสายรอบ 1 vs รอบ 2 (โหมด `/playtest` + CSV พร้อมแล้ว — ขั้นตอนใน `docs/DEPLOY.md` ข้อ 5)
 - [x] (optional) Supabase leaderboard (โค้ดเสร็จ — Nut ต้องสร้างโปรเจกต์ Supabase + ใส่ env ตาม `docs/DEPLOY.md` ข้อ 1)
-- [ ] Deploy Vercel + ซ้อมเดโม (checklist ใน `docs/DEPLOY.md`)
+- [ ] Deploy Vercel + ซ้อมเดโม — deploy แล้ว https://scamcall.vercel.app (2026-10-11, push `main` = deploy อัตโนมัติ) · เหลือซ้อมเดโมตาม `docs/DEPLOY.md` ข้อ 6
+
+### v2 — ScamCall: Campus (เกม 3D แคมปัส มจธ.) · ดีไซน์ทั้งหมดใน `docs/GAME_SPEC.md`
+- [x] Phase 0: `docs/GAME_SPEC.md`
+- [ ] Phase 1: ตัวตนผู้เล่น (guest + Google), XP/เลเวล/เหรียญ/ฉายา, `/me`, `/hall` — guest + XP + เหรียญ + บอร์ด ทดสอบกับ Supabase จริงผ่านแล้ว (2026-10-11) · เหลือทดสอบ login Google (`docs/DEPLOY.md` ข้อ 7C)
+- [ ] Phase 2: แผนที่ 3D (React Three Fiber) + NPC + StoryCard (รอรายชื่อ/รูปสถานที่จาก Nut)
+- [ ] Phase 3: แชทจำลอง + ด่านลงทุน/งานออนไลน์
+- [ ] Phase 4: animation / X-Ray dramatic / เสียง / การ์ดแชร์
+- [ ] Phase 5: dataset AOC 1441 → 6–8 ด่าน + ทดสอบมือถือจริง
+
+หลัก v2: ลูกเล่นทุกอย่างให้รางวัลพฤติกรรมที่ถูก (วางเร็ว/ไม่หลุดข้อมูล/1441) · logic สาย/X-Ray/คะแนนเดิมไม่แตะ · ระหว่างโทร unmount Canvas 3D · บอร์ดแสดงแค่ฉายา (ประกอบจากชิ้นส่วน ไม่มีข้อความอิสระ)
 
 ## 12. วิธีทำงานร่วมกับ Nut
 

@@ -9,9 +9,11 @@ import type { SubmitStatus } from "@/components/xray/types";
 import { XRayScreen } from "@/components/xray/XRayScreen";
 import { requestAnalysis } from "@/lib/analysis/client";
 import { COPY } from "@/lib/copy";
+import type { PlayResponse } from "@/lib/game/api";
+import { refreshPlayer, usePlayer } from "@/lib/game/playerStore";
 import { saveAnalysis, useStoredCall } from "@/lib/live/sessionStore";
 import { usePlaytestMode } from "@/lib/playtest/store";
-import { submitLeaderboard, submitPlaytest } from "@/lib/results/client";
+import { submitPlay, submitPlaytest, type SubmitOutcome } from "@/lib/results/client";
 import { computeScore } from "@/lib/scoring";
 
 /** โหลดผลสายจาก sessionStorage → ขอวิเคราะห์ (ครั้งเดียว แล้ว cache) → คิดคะแนน → ส่งให้ XRayScreen */
@@ -22,8 +24,10 @@ export default function XRayController({ sessionId }: { sessionId: string }) {
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const requestedAttempt = useRef<number | null>(null);
-  const [leaderboardStatus, setLeaderboardStatus] = useState<SubmitStatus>("idle");
-  const [playtestStatus, setPlaytestStatus] = useState<SubmitStatus>("idle");
+  const player = usePlayer();
+  const [game, setGame] = useState<{ outcome: SubmitOutcome; play: PlayResponse | null } | null>(null);
+  const playRequested = useRef(false);
+  const [playtestStatus, setPlaytestStatus] = useState<SubmitStatus | null>(null);
   const playtestRequested = useRef(false);
   const signed = analysis?.result ?? null;
 
@@ -41,6 +45,16 @@ export default function XRayController({ sessionId }: { sessionId: string }) {
     playtestRequested.current = true;
     void submitPlaytest(playtest.testerCode, playtest.round, signed).then(setPlaytestStatus);
   }, [playtest, signed]);
+
+  // ระบบผู้เล่น: บันทึกผล → XP/เหรียญ (รอ session guest/login พร้อมก่อน) · ซ้ำ = 409 "บันทึกไปแล้ว"
+  useEffect(() => {
+    if (!signed || player.status !== "ready" || playRequested.current) return;
+    playRequested.current = true;
+    void submitPlay(signed).then((r) => {
+      setGame(r);
+      if (r.outcome === "sent") void refreshPlayer();
+    });
+  }, [signed, player.status]);
 
   if (!ready) return null;
 
@@ -83,18 +97,17 @@ export default function XRayController({ sessionId }: { sessionId: string }) {
       session={session}
       analysis={analysis.analysis}
       score={computeScore(session, analysis.analysis)}
-      share={{
-        enabled: signed !== null,
-        leaderboardStatus,
-        onSubmitLeaderboard: (nickname) => {
-          if (!signed) return;
-          setLeaderboardStatus("sending");
-          void submitLeaderboard(nickname, signed).then(setLeaderboardStatus);
-        },
-        onViewLeaderboard: () => router.push("/leaderboard"),
-        playtest: playtest
-          ? { ...playtest, status: playtestStatus === "idle" ? "sending" : playtestStatus }
-          : null,
+      game={{
+        status:
+          !signed || player.status === "disabled"
+            ? "disabled"
+            : player.status === "error"
+              ? "error"
+              : (game?.outcome ?? "sending"),
+        play: game?.play ?? null,
+        onOpenProfile: () => router.push("/me"),
+        onOpenHall: () => router.push("/hall"),
+        playtest: playtest ? { ...playtest, status: playtestStatus ?? "sending" } : null,
       }}
       onRetryLevel={() => router.push(`/call/${session.levelId}`)}
       onBackToLevels={() => router.push("/levels")}

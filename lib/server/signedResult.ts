@@ -8,12 +8,14 @@ import type { ResultPayload, SignedResult } from "@/lib/types";
 const FIELDS = [
   "sessionId",
   "levelId",
+  "channel",
   "endedBy",
   "hangupT",
   "shouldHangUpAt",
   "score",
   "grade",
   "complied",
+  "saidCallback",
   "leakedCount",
   "issuedAt",
 ] as const satisfies readonly (keyof ResultPayload)[];
