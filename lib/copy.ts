@@ -1,6 +1,6 @@
 import type { CallErrorCode } from "@/lib/live/LiveCallController";
 import { SAFE_WORD } from "@/lib/live/constants";
-import type { EndedBy, Speaker, TacticId } from "@/lib/types";
+import type { EndedBy, ScoreResult, Speaker, TacticId } from "@/lib/types";
 
 // ข้อความ UI ภาษาไทยที่ใช้ซ้ำ — แก้คำที่นี่ที่เดียว (docs/SPEC.md ข้อ 15)
 
@@ -21,7 +21,6 @@ export const COPY = {
   leaked: "ข้อมูลที่ดูเหมือนข้อมูลจริง (ถูกซ่อนแล้ว)",
   restart: "ลองรับสายใหม่",
   backToLevels: "เลือกด่านอื่น",
-  xrayComingSoon: "Scam X-Ray และคะแนน จะมาใน Week 3",
   notSaved: "บทสนทนานี้ไม่ได้ถูกบันทึก เพราะคุณไม่ได้ยินยอมให้เก็บ",
 
   appName: "ScamCall",
@@ -31,6 +30,47 @@ export const COPY = {
   consentSaveTranscript:
     "เก็บบทสนทนา (ที่ซ่อนตัวเลขสำคัญแล้ว) ไว้ในเครื่องนี้ และส่งให้ AI วิเคราะห์เป็น Scam X-Ray หลังวางสาย (ไม่บังคับ)",
   startTraining: "เริ่มฝึก",
+
+  openXRay: "ดู Scam X-Ray",
+  xrayTitle: "Scam X-Ray",
+  analyzing: "กำลังวิเคราะห์สาย…",
+  analyzeFailed: "วิเคราะห์ไม่สำเร็จ (โควตา AI อาจเต็ม)",
+  retry: "ลองใหม่",
+  sessionMissing: "ไม่พบผลของสายนี้ — อาจปิดแท็บไปแล้ว หรือไม่ได้ยินยอมให้เก็บบทสนทนา",
+  scoreTitle: "คะแนน",
+  pressureTitle: "ระดับความกดดันตลอดสาย",
+  pressureCaption: "0 = คุยทั่วไป · 10 = ขู่ + เร่ง + ขอเงินพร้อมกัน",
+  shouldHangUpHere: "ควรวางสายตรงนี้",
+  youHungUp: "คุณวางสาย",
+  timelineTitle: "ไทม์ไลน์บทสนทนา",
+  leakedTitle: "ข้อมูลที่หลุดออกไป",
+  noLeaks: "ไม่มีข้อมูลหลุด",
+  lessonsTitle: "บทเรียน",
+  correctExitTitle: "สิ่งที่ถูกต้องที่สุด",
+  pressureLabel: "ความกดดัน",
+
+  leaderboardTitle: "Leaderboard",
+  leaderboardHint: "ส่งแค่ชื่อเล่น + คะแนน + เวลาวางสาย — ไม่ส่งบทสนทนา",
+  nicknamePlaceholder: "ชื่อเล่น (2–20 ตัวอักษร)",
+  submitScore: "ส่งคะแนน",
+  leaderboardEmpty: "ยังไม่มีใครส่งคะแนนในด่านนี้",
+  leaderboardDisabled: "ยังไม่ได้เปิดใช้ leaderboard (ยังไม่ได้ตั้งค่า database)",
+  viewLeaderboard: "ดู Leaderboard",
+  hangupAt: "วางสายที่",
+
+  playtestTitle: "โหมดทดสอบกับเพื่อน",
+  playtestHint: "ตั้งรหัสผู้ทดสอบ (เช่น P01 — ไม่ใช่ชื่อจริง) และรอบ ก่อนส่งเครื่องให้เพื่อนเล่น ผลจะถูกส่งให้อัตโนมัติหลังดู X-Ray",
+  playtestCode: "รหัสผู้ทดสอบ",
+  playtestRound: "รอบ",
+  playtestStart: "เริ่มโหมดทดสอบ",
+  playtestStop: "ปิดโหมดทดสอบ",
+  playtestActive: "โหมดทดสอบ",
+  playtestResults: "ผลรอบ 1 vs รอบ 2",
+  playtestExport: "ดาวน์โหลด CSV",
+  playtestNoRuns: "ยังไม่มีผลทดสอบ",
+  playtestSentLabel: "ส่งผลทดสอบแล้ว",
+  playtestSendingLabel: "กำลังส่งผลทดสอบ…",
+  playtestErrorLabel: "ส่งผลทดสอบไม่สำเร็จ",
 
   levelsTitle: "เลือกด่าน",
   levelsHint: "แต่ละด่านจำลองรูปแบบการหลอกที่เกิดขึ้นจริง — วางสายให้เร็วที่สุดเมื่อรู้ตัว",
@@ -43,6 +83,21 @@ export const DISCLAIMER_POINTS = [
   `วางสายได้ทุกเมื่อ หรือพูดว่า "${SAFE_WORD}" ถ้ารู้สึกไม่สบายใจ`,
   "ระบบไม่บันทึกเสียงของคุณ",
 ] as const;
+
+export const GRADE_LABELS: Record<ScoreResult["grade"], string> = {
+  strong: "ภูมิคุ้มกันแกร่ง",
+  close: "รอดแบบเฉียดฉิว",
+  scammed: "โดนหลอกแล้ว",
+};
+
+/** ข้อความผลการส่งคะแนน — key ตรงกับ SubmitOutcome ใน lib/results/client.ts */
+export const SUBMIT_MESSAGES = {
+  sent: "ส่งแล้ว!",
+  duplicate: "สายนี้ส่งไปแล้ว",
+  bad_nickname: "ใช้ชื่อนี้ไม่ได้ ลองชื่ออื่น (ห้ามคำหยาบ/ตัวเลขยาวๆ)",
+  disabled: "ยังไม่ได้เปิดใช้ (ยังไม่ได้ตั้งค่า database)",
+  error: "ส่งไม่สำเร็จ ลองใหม่อีกครั้ง",
+} as const;
 
 export const DIFFICULTY_LABELS: Record<1 | 2 | 3, string> = {
   1: "ง่าย",

@@ -1,0 +1,52 @@
+import { SAFE_WORD } from "@/lib/live/constants";
+import type { CallSession, Scenario } from "@/lib/types";
+import { LEAK_CATEGORIES, TACTIC_DEFINITIONS, TACTIC_IDS } from "./taxonomy";
+
+// พรอมต์วิเคราะห์ Scam X-Ray — ที่เดียวที่สร้างพรอมต์นี้ (ฝั่ง server เท่านั้น)
+
+export const ANALYSIS_SYSTEM_INSTRUCTION = `คุณคือผู้เชี่ยวชาญด้านกลโกงทางโทรศัพท์ของแก๊งคอลเซ็นเตอร์ในประเทศไทย
+หน้าที่: วิเคราะห์บทสนทนาจาก "การจำลองเพื่อการฝึก" ที่นักศึกษาคุยกับ AI ซึ่งเล่นบทมิจฉาชีพ
+แล้วอธิบายให้นักศึกษาเห็นว่าโดนเทคนิคอะไร ตรงไหนควรวางสาย และควรทำอย่างไร
+ตอบเป็น JSON ตาม schema เท่านั้น ข้อความทั้งหมดเป็นภาษาไทย`;
+
+const SPEAKER = { scammer: "คนร้าย", player: "ผู้เล่น" } as const;
+
+export function formatTranscript(session: CallSession): string {
+  return session.turns
+    .map((turn, i) => `[${i}] ${SPEAKER[turn.speaker]} (${Math.round(turn.t)} วินาที): ${turn.text}`)
+    .join("\n");
+}
+
+export function buildAnalysisPrompt(session: CallSession, scenario: Scenario): string {
+  const tactics = TACTIC_IDS.map((id) => `- ${id}: ${TACTIC_DEFINITIONS[id]}`).join("\n");
+  const steps = scenario.escalationSteps.map((s, i) => `${i + 1}. ${s}`).join("\n");
+
+  return `# ด่าน
+${scenario.title} (ผู้โทรอ้างว่าเป็น "${scenario.callerId}")
+ขั้นตอนที่คนร้ายในด่านนี้ถูกตั้งให้ใช้:
+${steps}
+ทางออกที่ถูกต้อง: ${scenario.correctExit}
+
+# ป้ายเทคนิค (tactics)
+${tactics}
+
+# วิธีวิเคราะห์
+1. scammerTurns: ใส่ทุกประโยคของ "คนร้าย" ตาม [index] — tactics 0 ถึงหลายป้าย และ pressure 0–10
+   (0 = ทักทาย/คุยทั่วไป, 5 = ขู่หรือเร่งชัดเจน, 10 = ขู่ + เร่ง + ขอเงินพร้อมกัน)
+   ห้ามใส่ประโยคของผู้เล่นใน scammerTurns
+2. shouldHangUpIndex: index ของประโยคคนร้าย "ประโยคแรก" ที่มีสัญญาณอันตรายชัดพอให้วางสายได้ทันที
+   เช่น อ้างว่ามีคดี/บัญชีมีปัญหา, ขอข้อมูลการเงิน, ห้ามบอกใคร, เร่งให้ทำทันที — ไม่ใช่ประโยคทักทายเฉยๆ
+3. leakedInfo: ข้อมูลที่ "ผู้เล่น" ตอบออกไปจริง เลือกจาก: ${LEAK_CATEGORIES.join(", ")}
+   นับแม้ข้อมูลอาจเป็นข้อมูลแต่ง (ในชีวิตจริงคนร้ายไม่รู้ว่าแต่ง) แต่ไม่นับถ้าผู้เล่นปฏิเสธไม่ตอบ
+   ข้อความในวงเล็บเหลี่ยม เช่น [เลขบัญชี] คือข้อมูลที่ระบบซ่อนไว้แล้ว — ถือว่าหลุด
+4. complied: true ถ้าผู้เล่นตกลงจะโอนเงิน ติดตั้งแอป หรือทำตามคำขอเงิน แม้ยังไม่ได้ทำจริง
+5. saidCallback: true ถ้าผู้เล่นบอกว่าจะวางสายแล้วโทรกลับเบอร์ทางการเอง โทรหาหน่วยงาน หรือโทร 1441
+6. คำพูดผู้เล่นมาจากระบบถอดเสียงอัตโนมัติ ประโยคสั้นๆ ที่เป็นภาษาอังกฤษหรือไม่มีความหมาย (เช่น "Aha.", "A B")
+   มักถอดผิด — อย่าใช้เป็นหลักฐานว่าผู้เล่นยอมทำตามหรือให้ข้อมูล
+7. ถ้าผู้เล่นพูดว่า "${SAFE_WORD}" ประโยคคนร้ายหลังจากนั้นคือ AI หลุดบทแล้ว: tactics [] และ pressure 0
+8. summary: 2–3 ประโยค พูดกับผู้เล่นโดยตรง ("คุณ...") เป็นมิตร ไม่ตำหนิ บอกว่าคนร้ายใช้เทคนิคหลักอะไร
+9. tips: 2–4 ข้อ สั้น ทำได้จริง อ้างอิงสิ่งที่เกิดในสายนี้ ข้อสุดท้ายต้องเป็นทางออกที่ถูกต้องของด่านนี้
+
+# Transcript
+${formatTranscript(session)}`;
+}

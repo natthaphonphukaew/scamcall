@@ -86,6 +86,38 @@ export interface AnalysisResult {
   tips: string[];
 }
 
+/** ข้อมูลด่านที่หน้า X-Ray ใช้ (มีทางออกที่ถูกต้องสำหรับบทเรียน) */
+export type LevelSummary = Pick<Scenario, "id" | "title" | "callerId" | "correctExit">;
+
+/** ผลสายที่ server คิดคะแนนเองแล้ว — ใช้ส่ง leaderboard / playtest */
+export interface ResultPayload {
+  sessionId: string;
+  levelId: string;
+  endedBy: EndedBy;
+  hangupT: number;
+  shouldHangUpAt: number;
+  score: number;
+  grade: ScoreResult["grade"];
+  complied: boolean;
+  leakedCount: number;
+  /** epoch ms */
+  issuedAt: number;
+}
+
+/** ResultPayload + HMAC จาก server — browser แก้คะแนนเองไม่ได้ */
+export interface SignedResult {
+  payload: ResultPayload;
+  sig: string;
+}
+
+/** response ของ POST /api/analyze */
+export interface AnalyzeResponse {
+  analysis: AnalysisResult;
+  level: LevelSummary;
+  /** null = server ไม่ได้ตั้ง RESULT_SIGNING_SECRET (ปิด leaderboard/playtest) */
+  result: SignedResult | null;
+}
+
 export interface ScoreResult {
   score: number;
   grade: "strong" | "close" | "scammed";

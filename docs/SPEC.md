@@ -86,10 +86,40 @@ idle ──(เปิดหน้า)──▶ ringing ──(รับสาย
 > หมายเหตุ: rate limit แบบ in-memory ใช้ได้ดีตอน dev/เดโม บน Vercel แต่ละ instance นับแยกกัน — ยอมรับได้สำหรับโปรเจกต์นี้
 
 ### 3.2 `POST /api/analyze` (Week 3)
-**Request** = `CallSession` (ข้อ 4) — transcript ที่ mask แล้วเท่านั้น
-**Response 200** = `AnalysisResult` (ข้อ 4) บังคับด้วย `responseSchema` ของ Gemini (`GEMINI_ANALYSIS_MODEL`)
-- server ตรวจซ้ำ: `tactics` ต้องอยู่ใน taxonomy 8 ตัว, `pressure` clamp 0–10, `t` ต้องตรงกับ turn ที่มีจริง
-- ถ้าวิเคราะห์ไม่สำเร็จ → `502 { error: "analyze_failed" }` แล้ว UI ให้กด "ลองใหม่"
+**Request** = `CallSession` (ข้อ 4) — transcript ที่ mask แล้ว
+**Response 200** = `AnalyzeResponse { analysis: AnalysisResult, level: { id, title, callerId, correctExit } }`
+(`level` มาด้วยเพราะหน้า X-Ray ฝั่ง browser ไม่ควร import ไฟล์ด่านทั้งไฟล์ — มีบท/persona)
+
+**ทำงานยังไง**
+1. `parseCallSession` ตรวจ body (≤ 200 turns, ตัดข้อความ > 1000 ตัวอักษร) และ **mask ซ้ำฝั่ง server**
+2. ไม่มีประโยคคนร้ายเลย (ไม่รับสาย/วางทันที) → `emptyAnalysis` ไม่เรียกโมเดล
+3. `generateContent` (`GEMINI_ANALYSIS_MODEL`, temperature 0.2, timeout 30s) + `responseMimeType: application/json` + `responseJsonSchema` (`lib/analysis/schema.ts`)
+4. **โมเดลตอบเป็น index ของประโยค** (`scammerTurns[{index,tactics,pressure}]`, `shouldHangUpIndex`) ไม่ต้องคัดลอกข้อความ → `normalizeAnalysis` ดึง `t/speaker/text` จาก transcript จริง กันโมเดลแต่งบทสนทนา + ประหยัด token
+5. ตรวจผล: tactics ต้องอยู่ใน taxonomy, pressure clamp 0–10, `leakedInfo` เป็น enum 10 หมวด + รวมหมวดที่ mask จับได้ในคำพูดผู้เล่นเสมอ, ประโยคผู้เล่นไม่มีป้ายและใช้ pressure ล่าสุดของคนร้าย, `shouldHangUpIndex` ชี้ผิด → fallback ประโยคคนร้ายถัดไป / ประโยคแรกที่ pressure ≥ 5
+6. ไม่เก็บ transcript ที่ server
+
+**Errors**: 400 `bad_request` · 404 `level_not_found` · 429 `rate_limited` (10/นาที/IP) · 502 `analyze_failed` (UI มีปุ่ม "ลองใหม่")
+
+**Client** (`/xray/[sessionId]`): อ่าน `CallSession` จาก sessionStorage → เรียกครั้งเดียวแล้ว cache ผลที่ `scamcall:analysis:<sessionId>` (refresh ไม่เปลืองโควตา)
+
+ทดสอบกับ `fixtures/calls/police-2026-10-10.json` (2026-10-10, `gemini-3.5-flash-lite`, ~3.6s): `shouldHangUpAt` 0:16, `complied` true, `saidCallback` true, หลุด "ธนาคารที่ใช้" + "ยอดเงินในบัญชี" — ตรงกับที่คนตัดสิน และรันซ้ำได้ผลเท่าเดิม
+
+### 3.3 Leaderboard + ผลทดสอบ (Week 4)
+
+**กันโกงคะแนน:** `/api/analyze` คิดคะแนนเองด้วย `computeScore` แล้วคืน `result: SignedResult` (HMAC-SHA256 ด้วย `RESULT_SIGNING_SECRET`, อายุ 24 ชม., ลำดับ field ตายตัว) — route ที่บันทึกข้อมูลเชื่อเฉพาะ `payload` ที่ลายเซ็นถูก และ `session_id` เป็น unique (หนึ่งสายส่งได้ครั้งเดียว)
+
+| Route | Body | ผล |
+|---|---|---|
+| `POST /api/leaderboard` | `{ nickname, result }` | 200 · 400 `bad_nickname` · 403 `invalid_result` · 409 `already_submitted` · 503 `storage_disabled` |
+| `POST /api/playtest` | `{ testerCode, round (1–5), result }` | เหมือนกัน (ไม่มี nickname) |
+| `GET /api/playtest/export` | — | CSV (มี BOM ให้ Excel อ่านไทยได้) |
+
+- ชื่อเล่น (`lib/server/nickname.ts`): 2–20 ตัวอักษร ตัดอักขระล่องหน กรองคำหยาบพื้นฐาน และห้ามมีตัวเลขยาวที่ดูเหมือนเบอร์/เลขบัตร
+- ไม่ตั้ง `RESULT_SIGNING_SECRET` หรือ Supabase → ฟีเจอร์นี้ปิด (503) ส่วนอื่นของแอปทำงานปกติ
+- หน้า `/leaderboard`, `/playtest` อ่าน DB ตอน request (`await connection()` นอก `try` — Cache Components หยุด prerender ด้วยการ throw)
+- โหมดทดสอบเก็บ `{ testerCode, round }` ใน localStorage ของเครื่องนั้น และส่งผลอัตโนมัติเมื่อเปิด X-Ray
+- ตาราง: `supabase/migrations/001_scamcall.sql` — RLS เปิด ไม่มี policy, server ใช้ secret key (`sb_secret_...`) ผ่าน `lib/server/db.ts` เท่านั้น
+- ตัวชี้วัดหลักของ playtest: **วางช้าเฉลี่ย** = `max(0, hangupT − shouldHangUpAt)` (เทียบข้ามด่านได้) + คะแนนเฉลี่ย + % ยอมโอน, เทียบรอบ 1 vs 2
 
 ---
 
@@ -185,8 +215,8 @@ export interface ScoreResult {
 |---|---|
 | `endedBy === 'declined'` | 100 จบ (ไม่คิดกฎอื่น) |
 | `analysis.complied` | 0, grade `scammed` จบ |
-| ฐานเวลา: `hangupT ≤ shouldHangUpAt` | 100 |
-| ฐานเวลา: ช้ากว่า | `100 − ceil((hangupT − shouldHangUpAt) / 2)` ต่ำสุด 40 |
+| ฐานเวลา: `hangupT ≤ shouldHangUpAt + 10` | 100 (ผ่อนผัน 10 วินาที ให้ฟังประโยคอันตรายจนจบ) |
+| ฐานเวลา: ช้ากว่า | `100 − ceil((hangupT − (shouldHangUpAt + 10)) / 2)` ต่ำสุด 40 |
 | `endedBy === 'timeout'` (ไม่วางเองเลย) | ฐานเวลา = 40 |
 | ข้อมูลหลุด | −10 ต่อรายการใน `leakedInfo` (รวม redactions ที่ไม่ซ้ำหมวด) |
 | `saidCallback` | +10 |
@@ -341,7 +371,7 @@ session.onmessage
 `app/api/analyze/route.ts` (+ `lib/analysis/schema.ts`), `lib/scoring.ts` + test, `components/XRayTimeline.tsx`, `components/PressureChart.tsx` (Recharts + เส้น "ควรวางสายตรงนี้"), `components/ScoreCard.tsx`, `app/xray/[sessionId]/page.tsx`
 
 ### Week 4 — ขัดเงา + หลักฐาน
-`app/manifest.ts` + service worker + icons, ทดสอบ iOS Safari/Chrome Android, ทดสอบกับเพื่อน 5–10 คน (เวลาวางสายรอบ 1 vs 2), (optional) Supabase leaderboard, deploy Vercel, ซ้อมเดโม
+`app/manifest.ts` + `public/sw.js` (ไม่ cache, มีหน้าออฟไลน์) + ไอคอนจาก `next/og` (`app/pwa-icon/[variant]`, `app/icon.tsx`, `app/apple-icon.tsx`) + security headers (`Permissions-Policy: microphone=(self)`), Supabase leaderboard + playtest (ข้อ 3.3), checklist deploy/ทดสอบ/เดโม → `docs/DEPLOY.md`
 
 ---
 

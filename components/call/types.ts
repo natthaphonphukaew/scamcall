@@ -27,6 +27,8 @@ export interface EndedScreenProps {
   errorMessage: string | null;
   /** false = ผู้เล่นไม่ยินยอมให้เก็บ transcript (แสดงได้ แต่ไม่ได้บันทึก และจะทำ X-Ray ไม่ได้) */
   saved: boolean;
+  /** ไปหน้า Scam X-Ray (ใช้ได้เฉพาะเมื่อ saved) */
+  onOpenXRay: () => void;
   onRestart: () => void;
   onBackToLevels: () => void;
 }

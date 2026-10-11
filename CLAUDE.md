@@ -71,6 +71,9 @@ scenarios/*.json           # ไฟล์ด่าน (ดูข้อ 6)
 data/                      # dataset อ้างอิง (ดูข้อ 8)
 public/                    # ringtone, icons, manifest
 docs/SPEC.md               # สเปกเทคนิค (API, types, scoring, masking, UI architecture) — อ่านคู่กับไฟล์นี้
+docs/DEPLOY.md             # checklist Supabase / GitHub / Vercel / ทดสอบมือถือ / playtest / ซ้อมเดโม
+fixtures/calls/*.json      # transcript จริงจากการทดสอบ ใช้ใน unit test และทดสอบ /api/analyze
+supabase/migrations/       # SQL สร้างตาราง leaderboard + playtest_runs
 ```
 
 ## 6. Scenario schema (หนึ่งไฟล์ = หนึ่งด่าน)
@@ -159,15 +162,15 @@ Output ของ `/api/analyze` (บังคับด้วย JSON schema):
 - [x] กติกาความปลอดภัยครบตามข้อ 7 (หน้าแรก disclaimer + consent, ไม่บันทึกถ้าไม่ยินยอม)
 
 ### Week 3 — Scam X-Ray + คะแนน
-- [ ] `/api/analyze` + JSON schema
-- [ ] XRayTimeline, PressureChart, ScoreCard
-- [ ] จุด "ควรวางสายตรงนี้"
+- [x] `/api/analyze` + JSON schema
+- [x] XRayTimeline, PressureChart, ScoreCard (หน้าตาเรียบ รอดีไซน์ `components/xray/*`)
+- [x] จุด "ควรวางสายตรงนี้"
 
 ### Week 4 — ขัดเงา + หลักฐาน
-- [ ] PWA installable, ทดสอบบนมือถือจริง
-- [ ] ทดสอบกับเพื่อน 5–10 คน: วัดเวลาวางสายรอบ 1 vs รอบ 2
-- [ ] (optional) Supabase leaderboard
-- [ ] Deploy Vercel + ซ้อมเดโม
+- [ ] PWA installable, ทดสอบบนมือถือจริง (โค้ดเสร็จ — รอทดสอบหลัง deploy เพราะไมค์บนมือถือต้องใช้ HTTPS)
+- [ ] ทดสอบกับเพื่อน 5–10 คน: วัดเวลาวางสายรอบ 1 vs รอบ 2 (โหมด `/playtest` + CSV พร้อมแล้ว — ขั้นตอนใน `docs/DEPLOY.md` ข้อ 5)
+- [x] (optional) Supabase leaderboard (โค้ดเสร็จ — Nut ต้องสร้างโปรเจกต์ Supabase + ใส่ env ตาม `docs/DEPLOY.md` ข้อ 1)
+- [ ] Deploy Vercel + ซ้อมเดโม (checklist ใน `docs/DEPLOY.md`)
 
 ## 12. วิธีทำงานร่วมกับ Nut
 

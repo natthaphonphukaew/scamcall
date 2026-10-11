@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PlaytestBadge } from "@/components/playtest/PlaytestBadge";
 import { Screen } from "@/components/ui/Screen";
 import { COPY, DIFFICULTY_LABELS } from "@/lib/copy";
 import { listScenarios, toPublicScenario } from "@/lib/scenarios/load";
@@ -10,9 +11,15 @@ export default function LevelsPage() {
 
   return (
     <Screen className="gap-4">
-      <header>
-        <h1 className="text-2xl font-bold">{COPY.levelsTitle}</h1>
-        <p className="text-sm text-muted">{COPY.levelsHint}</p>
+      <PlaytestBadge />
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{COPY.levelsTitle}</h1>
+          <p className="text-sm text-muted">{COPY.levelsHint}</p>
+        </div>
+        <Link href="/leaderboard" className="shrink-0 rounded-full bg-surface-raised px-3 py-1 text-sm">
+          {COPY.leaderboardTitle}
+        </Link>
       </header>
 
       <ol className="flex flex-col gap-3">

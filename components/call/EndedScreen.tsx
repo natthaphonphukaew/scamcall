@@ -12,6 +12,7 @@ export function EndedScreen({
   result,
   errorMessage,
   saved,
+  onOpenXRay,
   onRestart,
   onBackToLevels,
 }: EndedScreenProps) {
@@ -41,7 +42,13 @@ export function EndedScreen({
       <TranscriptList turns={result.turns} className="flex-1" />
 
       <footer className="flex flex-col items-center gap-2">
-        <p className="text-xs text-muted">{saved ? COPY.xrayComingSoon : COPY.notSaved}</p>
+        {saved ? (
+          <Button variant="accept" onClick={onOpenXRay} className="w-full">
+            {COPY.openXRay}
+          </Button>
+        ) : (
+          <p className="text-xs text-muted">{COPY.notSaved}</p>
+        )}
         <Button onClick={onRestart} className="w-full">
           {COPY.restart}
         </Button>
