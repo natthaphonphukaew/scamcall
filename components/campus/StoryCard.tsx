@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
+import { useCallback } from "react";
 import { Button } from "@/components/ui/Button";
 import type { LevelStat } from "@/lib/game/boards";
 import { COPY, DIFFICULTY_LABELS } from "@/lib/copy";
@@ -18,14 +19,37 @@ export interface StoryCardProps {
   stat: LevelStat | null;
   onStart: () => void;
   onClose: () => void;
+  /** ความสูงการ์ด (px) เมื่อเปลี่ยน — ให้กล้องยกตัวละครขึ้นพ้นการ์ด */
+  onHeightChange?: (px: number) => void;
 }
 
 /** การ์ดสถานการณ์เมื่อแตะ NPC — เลื่อนขึ้นจากด้านล่างแบบ bottom sheet */
-export function StoryCard({ open, npc, landmark, level, status, stat, onStart, onClose }: StoryCardProps) {
+export function StoryCard({
+  open,
+  npc,
+  landmark,
+  level,
+  status,
+  stat,
+  onStart,
+  onClose,
+  onHeightChange,
+}: StoryCardProps) {
+  const measure = useCallback(
+    (el: HTMLElement | null) => {
+      if (!el || !onHeightChange) return;
+      const ro = new ResizeObserver(() => onHeightChange(el.offsetHeight));
+      ro.observe(el);
+      return () => ro.disconnect();
+    },
+    [onHeightChange],
+  );
+
   return (
     <AnimatePresence>
       {open && npc && landmark && (
         <motion.section
+          ref={measure}
           key={npc.id}
           role="dialog"
           aria-label={npc.name}

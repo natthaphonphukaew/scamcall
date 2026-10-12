@@ -46,3 +46,29 @@ export function homeViewFor(points: THREE.Vector3[]): (aspect: number) => HomeVi
     return last.view;
   };
 }
+
+/** ความสูงของ HUD ด้านบนจอ (px) — ตัวละครที่โฟกัสไม่ควรไปอยู่ใต้ HUD */
+const TOP_INSET = 80;
+
+type Vec3 = [number, number, number];
+
+/**
+ * จุดเล็งใหม่ตอนโฟกัส NPC: กล้องอยู่ที่เดิม (ตำแหน่งที่ test เช็กแล้วว่าไม่มีตึกบัง) แต่ก้มลงเล็กน้อย
+ * ให้ NPC ไปอยู่กลางช่องว่างระหว่าง HUD ด้านบนกับการ์ดที่บังด้านล่างจอ (`bottomInset` px)
+ * — ไม่งั้น StoryCard บนมือถือจะบังตัวละคร
+ */
+export function focusTarget(position: Vec3, target: Vec3, screenHeight: number, bottomInset: number): Vec3 {
+  const shiftPx = Math.max(0, (bottomInset - TOP_INSET) / 2);
+  if (shiftPx === 0) return target;
+  const tanHalf = Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2));
+  const angle = Math.atan((shiftPx / (Math.max(1, screenHeight) / 2)) * tanHalf);
+
+  const pos = new THREE.Vector3(...position);
+  const dir = new THREE.Vector3(...target).sub(pos).normalize();
+  const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0)).normalize();
+  const camUp = new THREE.Vector3().crossVectors(right, dir).normalize();
+  // ก้มลง: หมุนทิศมองเข้าหา "ล่างจอ" แล้วหาจุดตัดกับระนาบความสูงเดิมของเป้า
+  const aim = dir.multiplyScalar(Math.cos(angle)).addScaledVector(camUp, -Math.sin(angle));
+  const t = (target[1] - pos.y) / aim.y;
+  return pos.addScaledVector(aim, t).toArray() as Vec3;
+}

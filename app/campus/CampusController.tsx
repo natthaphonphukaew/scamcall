@@ -38,6 +38,7 @@ export default function CampusController({ levels }: { levels: PublicScenario[] 
   const { me } = usePlayer();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [stats, setStats] = useState<LevelStat[]>([]);
+  const [cardHeight, setCardHeight] = useState(0);
 
   useEffect(() => {
     void fetch("/api/stats")
@@ -90,6 +91,7 @@ export default function CampusController({ levels }: { levels: PublicScenario[] 
           npcs={npcViews}
           hallPosition={HALL_SPOT}
           selectedId={selectedId}
+          bottomInset={selectedId ? cardHeight : 0}
           reducedMotion={reducedMotion}
           onSelect={setSelectedId}
           onOpenHall={openHall}
@@ -107,6 +109,7 @@ export default function CampusController({ levels }: { levels: PublicScenario[] 
         stat={selected ? (stats.find((s) => s.levelId === selected.levelId) ?? null) : null}
         onStart={startLevel}
         onClose={() => setSelectedId(null)}
+        onHeightChange={setCardHeight}
       />
     </main>
   );

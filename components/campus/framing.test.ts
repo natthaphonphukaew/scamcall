@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
-import { HALL_SPOT, NPC_SPOTS } from "@/lib/campus/spots";
-import { CAMERA_FOV, homeViewFor } from "./framing";
+import { HALL_SPOT, NPC_FOCUS, NPC_SPOTS } from "@/lib/campus/spots";
+import { CAMERA_FOV, focusTarget, homeViewFor } from "./framing";
 
 const POINTS = [...Object.values(NPC_SPOTS), HALL_SPOT].map(([x, z]) => new THREE.Vector3(x, 7, z));
 
@@ -30,6 +30,26 @@ describe("home camera framing", () => {
       }
     });
   }
+
+  it("tilts the focus camera so the NPC sits between the HUD and the StoryCard", () => {
+    const H = 812;
+    const card = 334; // ความสูงการ์ดบนมือถือที่วัดได้จริง
+    for (const f of Object.values(NPC_FOCUS)) {
+      const aim = focusTarget(f.position, f.target, H, card);
+      const cam = new THREE.PerspectiveCamera(CAMERA_FOV, 375 / H, 1, 10000);
+      cam.position.set(...f.position);
+      cam.lookAt(new THREE.Vector3(...aim));
+      cam.updateMatrixWorld();
+      const p = new THREE.Vector3(...f.target).project(cam);
+      const screenY = ((1 - p.y) / 2) * H;
+      expect(screenY).toBeCloseTo((80 + (H - card)) / 2, 0);
+    }
+  });
+
+  it("keeps the original aim when nothing covers the screen", () => {
+    const f = Object.values(NPC_FOCUS)[0];
+    expect(focusTarget(f.position, f.target, 812, 0)).toEqual(f.target);
+  });
 
   it("moves the camera back on narrow portrait screens", () => {
     const home = homeViewFor(POINTS);

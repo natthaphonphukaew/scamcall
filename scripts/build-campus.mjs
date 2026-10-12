@@ -14,7 +14,7 @@ const [campusEls, buildingEls, areaEls, roadEls] = await Promise.all(
 // ---- แลนด์มาร์ก: OSM way id → ข้อมูลที่ OSM ไม่มี (จำนวนชั้นจากแหล่งอ้างอิง/ประมาณจากรูปของ Nut) ----
 const LANDMARKS = {
   1333533935: { key: "lx", ref: "N16", levels: 15, note: "15 ชั้น (sustainable.kmutt.ac.th)" },
-  311879209: { key: "library", ref: "N10", levels: 6, note: "ประมาณจากรูป" },
+  311879209: { key: "library", ref: "N10", levels: 5, note: "Nut ยืนยัน: ตึกหลังทางเข้า 5 ชั้น" },
   224982053: { key: "sit", ref: "N11", levels: 5, note: "ประมาณจากรูป (ตัวอาคารหน้า 4–5 ชั้น)" },
   346449664: { key: "kfc", ref: "S14", levels: 4, note: "KFC อยู่ชั้น 2 ของอาคาร (kmutt.ac.th) · สูงประมาณจากรูป" },
   420045662: { key: "dorm_male", ref: "S5", levels: null, note: "จำนวนชั้นจาก OSM" },

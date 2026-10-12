@@ -17,7 +17,7 @@ import {
   NpcMarker,
   type NpcMarkerProps,
 } from "./Npc";
-import { CAMERA_FOV, homeViewFor, type HomeView } from "./framing";
+import { CAMERA_FOV, focusTarget, homeViewFor, type HomeView } from "./framing";
 import { AnchorProjector, useAnchorElements, type Anchor } from "./ScreenOverlay";
 import { Buildings, Ground, Trees } from "./World";
 
@@ -29,6 +29,8 @@ export interface CampusSceneProps {
   npcs: (Omit<NpcMarkerProps, "selected" | "animate" | "onSelect"> & { focus: FocusView })[];
   hallPosition: Pt;
   selectedId: string | null;
+  /** ความสูง (px) ของ UI ที่บังด้านล่างจอตอนเลือก NPC (StoryCard) — กล้องจะยกตัวละครขึ้นพ้นการ์ด */
+  bottomInset: number;
   reducedMotion: boolean;
   onSelect: (id: string | null) => void;
   onOpenHall: () => void;
@@ -40,14 +42,17 @@ const LABELS_NEAR_RATIO = 0.65;
 function CameraRig({
   focus,
   home,
+  bottomInset,
   reducedMotion,
 }: {
   focus: FocusView | null;
   home: (aspect: number) => HomeView;
+  bottomInset: number;
   reducedMotion: boolean;
 }) {
   const controls = useRef<CameraControls>(null);
   const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height));
+  const height = useThree((s) => s.size.height);
   // แตกเป็นตัวเลข → effect ไม่วิ่งซ้ำ (กล้องไม่เด้งกลับ) ตอน parent re-render ด้วยค่าเดิม
   const view = home(aspect);
   const [px, py, pz] = view.position.toArray();
@@ -65,11 +70,11 @@ function CameraRig({
     if (!c) return;
     const animate = !reducedMotion;
     if (focus) {
-      void c.setLookAt(...focus.position, ...focus.target, animate);
+      void c.setLookAt(...focus.position, ...focusTarget(focus.position, focus.target, height, bottomInset), animate);
     } else {
       void c.setLookAt(px, py, pz, tx, ty, tz, animate);
     }
-  }, [focus, reducedMotion, px, py, pz, tx, ty, tz]);
+  }, [focus, height, bottomInset, reducedMotion, px, py, pz, tx, ty, tz]);
 
   return (
     <CameraControls
@@ -89,6 +94,7 @@ export default function CampusScene({
   npcs,
   hallPosition,
   selectedId,
+  bottomInset,
   reducedMotion,
   onSelect,
   onOpenHall,
@@ -170,7 +176,7 @@ export default function CampusScene({
         ))}
         <HallPortal position={hallPosition} onOpen={onOpenHall} />
 
-        <CameraRig focus={focus} home={home} reducedMotion={reducedMotion} />
+        <CameraRig focus={focus} home={home} bottomInset={bottomInset} reducedMotion={reducedMotion} />
         <AnchorProjector
           anchors={anchors}
           elements={elements}
