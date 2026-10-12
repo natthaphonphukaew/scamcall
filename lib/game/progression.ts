@@ -27,8 +27,9 @@ export function isOnTime(o: Outcome): boolean {
   return o.hangupT <= o.shouldHangUpAt + HANG_UP_GRACE_SECONDS;
 }
 
+/** วางช้ากี่วินาที (หักเวลาผ่อนผันแบบเดียวกับการคิดคะแนน) — ใช้กับสายโทรเท่านั้น แชทนับเป็นจำนวนข้อความ */
 export function lateSecondsOf(o: Pick<Outcome, "endedBy" | "hangupT" | "shouldHangUpAt">): number {
-  return o.endedBy === "declined" ? 0 : Math.max(0, o.hangupT - o.shouldHangUpAt);
+  return o.endedBy === "declined" ? 0 : Math.max(0, o.hangupT - (o.shouldHangUpAt + HANG_UP_GRACE_SECONDS));
 }
 
 // ---- XP ----
@@ -148,7 +149,8 @@ export function earnedTitles(plays: PlayRecord[]): TitleId[] {
   if (plays.filter(isOnTime).length >= 5) titles.push("quick_cutter");
   if (hasComeback(plays)) titles.push("bounce_back");
   if (plays.filter((p) => p.complied).length >= 3) titles.push("too_kind");
-  if (faced.length >= 3 && mean(faced.map(lateSecondsOf)) > 60) titles.push("good_listener");
+  const facedCalls = faced.filter((p) => p.channel !== "chat");
+  if (facedCalls.length >= 3 && mean(facedCalls.map(lateSecondsOf)) > 60) titles.push("good_listener");
   if (compliedLevels.size >= 2) titles.push("gullible");
   return titles;
 }

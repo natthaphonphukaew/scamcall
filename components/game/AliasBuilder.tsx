@@ -23,9 +23,13 @@ export function AliasBuilder({
             key={slot}
             type="button"
             onClick={() => onReroll(slot as 0 | 1 | 2)}
-            className="rounded-full bg-surface-raised px-4 py-2 text-lg font-bold transition active:scale-95"
+            // การ์ดโปรไฟล์เป็นสี surface-raised อยู่แล้ว → ชิปใช้สีเข้มกว่า + ขอบ ให้เห็นว่าเป็นปุ่มกดสุ่ม
+            className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-lg font-bold ring-1 ring-white/15 transition hover:ring-player/60 active:scale-95"
           >
-            {list[parts[slot]]} <span aria-hidden>🎲</span>
+            {list[parts[slot]]}
+            <span aria-hidden className="text-base opacity-70">
+              🎲
+            </span>
           </button>
         ))}
       </div>

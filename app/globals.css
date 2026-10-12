@@ -25,6 +25,8 @@
 
   /* Scam X-Ray (Phase 4B) — ธีม "สแกน" เรืองแสงฟ้าอมเขียว */
   --color-xray: #2dd4bf;
+  /* รางวัลในเกม (Phase 4C) — เลเวลอัป / เหรียญ / XP */
+  --color-gold: #facc15;
 
   /* อนิเมชัน — ใช้คู่กับ motion-safe: เสมอ (ปิดเองเมื่อเครื่องตั้ง reduced motion) */
   --animate-scan: scan 1.8s ease-in-out infinite;
@@ -33,6 +35,8 @@
   --animate-ripple: ripple 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
   --animate-shimmer: shimmer 2.4s linear infinite;
   --animate-nudge: nudge 0.6s ease-in-out;
+  --animate-twinkle: twinkle 1.6s ease-in-out infinite;
+  --animate-page-in: page-in 0.25s ease-out;
 
   @keyframes ripple {
     0% {
@@ -107,6 +111,25 @@
     17% {
       clip-path: inset(4% 0 80% 0);
       transform: translate(-2px, 1px);
+    }
+  }
+  @keyframes page-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      transform: scale(0.6) rotate(0deg);
+      opacity: 0.3;
+    }
+    50% {
+      transform: scale(1.15) rotate(20deg);
+      opacity: 1;
     }
   }
   @keyframes nudge {

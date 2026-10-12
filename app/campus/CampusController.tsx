@@ -4,17 +4,24 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CampusHud } from "@/components/campus/CampusHud";
+import { CelebrationToast, LaunchOverlay } from "@/components/campus/CampusOverlays";
 import { CampusMap2D } from "@/components/campus/CampusMap2D";
 import type { NpcStatus } from "@/components/campus/Npc";
 import { StoryCard } from "@/components/campus/StoryCard";
 import { CAMPUS } from "@/lib/campus/data";
+import { newlySaved, readCelebrated, writeCelebrated } from "@/lib/campus/celebrate";
 import { useReducedMotion, useWebGL } from "@/lib/campus/device";
 import { LANDMARK_INFO, NPCS } from "@/lib/campus/npcs";
 import { HALL_SPOT, NPC_FOCUS, NPC_SPOTS } from "@/lib/campus/spots";
 import { COPY } from "@/lib/copy";
 import type { LevelStat } from "@/lib/game/boards";
 import { usePlayer } from "@/lib/game/playerStore";
-import type { PublicScenario } from "@/lib/types";
+import { playSfx } from "@/lib/sfx";
+import type { Channel, PublicScenario } from "@/lib/types";
+
+const CELEBRATE_DELAY_MS = 700;
+const CELEBRATE_MS = 4000;
+const LAUNCH_MS = 750;
 
 // ฉาก 3D โหลดเฉพาะฝั่ง browser และเฉพาะหน้านี้ (three.js ไม่ติดไปกับหน้าอื่น)
 const CampusScene = dynamic(() => import("@/components/campus/CampusScene"), {
@@ -39,6 +46,8 @@ export default function CampusController({ levels }: { levels: PublicScenario[] 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [stats, setStats] = useState<LevelStat[]>([]);
   const [cardHeight, setCardHeight] = useState(0);
+  const [celebrating, setCelebrating] = useState<string[] | null>(null);
+  const [launch, setLaunch] = useState<{ name: string; channel: Channel } | null>(null);
 
   useEffect(() => {
     void fetch("/api/stats")
@@ -48,6 +57,26 @@ export default function CampusController({ levels }: { levels: PublicScenario[] 
   }, []);
 
   const saved = useMemo(() => new Set(me?.stats.savedLevelIds ?? []), [me]);
+
+  // กลับมาแคมปัสหลังช่วยเพื่อนสำเร็จ → ฉลอง (ครั้งเดียวต่อด่าน จำไว้ในเครื่อง)
+  useEffect(() => {
+    if (!me) return;
+    const savedIds = me.stats.savedLevelIds;
+    const fresh = newlySaved(savedIds, readCelebrated());
+    if (fresh.length === 0) return;
+    const names = NPCS.filter((n) => fresh.includes(n.levelId)).map((n) => n.name);
+    // จดว่าฉลองแล้วตอนโชว์จริง — ถ้า me อัปเดตก่อนถึงเวลา effect รอบใหม่จะตั้งเวลาฉลองให้ใหม่
+    const show = window.setTimeout(() => {
+      writeCelebrated(savedIds);
+      setCelebrating(names);
+      playSfx("success");
+    }, CELEBRATE_DELAY_MS);
+    const hide = window.setTimeout(() => setCelebrating(null), CELEBRATE_DELAY_MS + CELEBRATE_MS);
+    return () => {
+      window.clearTimeout(show);
+      window.clearTimeout(hide);
+    };
+  }, [me]);
   const levelById = useMemo(() => new Map(levels.map((l) => [l.id, l])), [levels]);
   const statusOf = (levelId: string): NpcStatus =>
     !levelById.has(levelId) ? "soon" : saved.has(levelId) ? "saved" : "danger";
@@ -66,10 +95,23 @@ export default function CampusController({ levels }: { levels: PublicScenario[] 
   const playable = NPCS.filter((n) => levelById.has(n.levelId));
   const savedCount = playable.filter((n) => saved.has(n.levelId)).length;
 
+  const select = (id: string | null) => {
+    if (id && id !== selectedId) playSfx("pop");
+    setSelectedId(id);
+  };
+
   const startLevel = () => {
     const level = selected ? levelById.get(selected.levelId) : undefined;
-    if (!level) return;
-    router.push(`/${level.channel}/${level.id}`);
+    if (!selected || !level || launch) return;
+    const href = `/${level.channel}/${level.id}`;
+    if (reducedMotion) {
+      router.push(href);
+      return;
+    }
+    // ฉากสวมบทสั้นๆ ก่อนเข้าสาย/แชท (โหลดหน้าถัดไปรอระหว่างนี้)
+    router.prefetch(href);
+    setLaunch({ name: selected.name, channel: level.channel });
+    window.setTimeout(() => router.push(href), LAUNCH_MS);
   };
   const openHall = () => router.push("/hall");
 
@@ -83,7 +125,7 @@ export default function CampusController({ levels }: { levels: PublicScenario[] 
         <CampusMap2D
           npcs={npcViews.map(({ id, name, position, status }) => ({ id, name, position, status }))}
           hallPosition={HALL_SPOT}
-          onSelect={setSelectedId}
+          onSelect={select}
           onOpenHall={openHall}
         />
       ) : (
@@ -93,7 +135,7 @@ export default function CampusController({ levels }: { levels: PublicScenario[] 
           selectedId={selectedId}
           bottomInset={selectedId ? cardHeight : 0}
           reducedMotion={reducedMotion}
-          onSelect={setSelectedId}
+          onSelect={select}
           onOpenHall={openHall}
         />
       )}
@@ -111,6 +153,9 @@ export default function CampusController({ levels }: { levels: PublicScenario[] 
         onClose={() => setSelectedId(null)}
         onHeightChange={setCardHeight}
       />
+
+      <CelebrationToast names={celebrating} />
+      <LaunchOverlay launch={launch} />
     </main>
   );
 }

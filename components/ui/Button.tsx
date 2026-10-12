@@ -1,11 +1,13 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "accept" | "danger" | "neutral";
+/** outline = ใช้บนการ์ด surface-raised (neutral จะกลืนไปกับการ์ด) */
+type Variant = "accept" | "danger" | "neutral" | "outline";
 
 const VARIANTS: Record<Variant, string> = {
   accept: "bg-accept text-white",
   danger: "bg-danger text-white",
   neutral: "bg-surface-raised text-text",
+  outline: "bg-surface text-text ring-1 ring-white/15",
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

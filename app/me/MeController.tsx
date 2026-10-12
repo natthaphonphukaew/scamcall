@@ -128,17 +128,17 @@ export default function MeController({ levelCount }: { levelCount: number }) {
             {identityExists ? (
               <>
                 <p className="text-sm text-danger">{COPY.identityExists}</p>
-                <Button onClick={async () => setAccountMessage(await signInWithGoogle())}>{COPY.signInExisting}</Button>
+                <Button variant="outline" onClick={async () => setAccountMessage(await signInWithGoogle())}>{COPY.signInExisting}</Button>
               </>
             ) : (
-              <Button onClick={async () => setAccountMessage(await linkGoogle())}>{COPY.linkGoogle}</Button>
+              <Button variant="outline" onClick={async () => setAccountMessage(await linkGoogle())}>{COPY.linkGoogle}</Button>
             )}
             <p className="text-xs text-muted">{COPY.linkGoogleNote}</p>
           </>
         ) : (
           <>
             <p className="text-sm text-accept">{COPY.accountLinked}</p>
-            <Button onClick={() => void signOut()}>{COPY.signOut}</Button>
+            <Button variant="outline" onClick={() => void signOut()}>{COPY.signOut}</Button>
           </>
         )}
         {(accountMessage || (authError && !identityExists)) && (

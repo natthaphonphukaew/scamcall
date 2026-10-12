@@ -44,6 +44,9 @@ export const COPY = {
   xrayKicker: "SCAM X-RAY · ผลสแกน",
   scammedStamp: "SCAMMED",
   skip: "ข้าม ⏭",
+  soundOn: "เปิดเสียงประกอบ",
+  soundOff: "ปิดเสียงประกอบ",
+  tapToClose: "แตะเพื่อปิด",
   xrayScanSteps: (channel: Channel) => [
     "กำลังสแกนบทสนทนา…",
     "กำลังหาเทคนิคที่คนร้ายใช้…",
@@ -107,6 +110,8 @@ export const COPY = {
   npcSavedChip: "✓ เคยช่วยสำเร็จ",
   comingSoon: "⏳ เร็วๆ นี้ (ด่านแชท)",
   becomeNpc: (name: string) => `สวมบทเป็น${name}`,
+  launchAs: (name: string) => `กำลังสวมบทเป็น${name}…`,
+  celebrateSaved: (names: string) => `ช่วย${names} สำเร็จ! เพื่อนปลอดภัยแล้ว`,
   statScammed: (percent: number, plays: number) => `${percent}% โดนหลอก (${plays} สาย)`,
 
   // ---- Hall (docs/GAME_SPEC.md ข้อ 8) ----

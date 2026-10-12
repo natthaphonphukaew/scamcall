@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChatEndedScreen } from "@/components/chat/ChatEndedScreen";
 import { ChatScreen } from "@/components/chat/ChatScreen";
 import { ConsentForm } from "@/components/consent/ConsentForm";
@@ -9,6 +9,7 @@ import { Screen } from "@/components/ui/Screen";
 import { useChat } from "@/lib/chat/useChat";
 import { readConsent, useConsent, writeConsent } from "@/lib/consent";
 import { CHAT_ERROR_MESSAGES } from "@/lib/copy";
+import { playSfx } from "@/lib/sfx";
 import type { ChatIntro, PublicScenario } from "@/lib/types";
 
 const canSaveTranscript = () => readConsent()?.saveTranscript === true;
@@ -37,6 +38,12 @@ export default function ChatPageController(props: Props) {
 function ChatRun({ scenario, intro, saved, onRestart }: Props & { saved: boolean; onRestart: () => void }) {
   const router = useRouter();
   const chat = useChat(scenario.id, intro, canSaveTranscript);
+  const last = chat.messages.at(-1);
+
+  // ข้อความใหม่จากคนร้าย = เสียงแจ้งเตือนแชท (แชทไม่มีเสียง AI จึงไม่ทับกัน)
+  useEffect(() => {
+    if (last?.speaker === "scammer") playSfx("message");
+  }, [last?.id, last?.speaker]);
 
   if (chat.status === "ended" && chat.result) {
     const sessionId = chat.result.sessionId;

@@ -1,15 +1,21 @@
 "use client";
 
 import { motion } from "motion/react";
+import { useEffect } from "react";
+import { SoundToggle } from "@/components/ui/SoundToggle";
 import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
 import { COPY, ENDED_BY_LABELS } from "@/lib/copy";
+import { playSfx, type Sfx } from "@/lib/sfx";
+import type { ScoreResult } from "@/lib/types";
 import { Confetti, seedFrom } from "./Confetti";
 import { PressureChart } from "./PressureChart";
 import { GameResult } from "./GameResult";
 import { ScoreCard } from "./ScoreCard";
 import type { XRayScreenProps } from "./types";
 import { useReveal } from "./useReveal";
+
+const VERDICT_SFX: Record<ScoreResult["grade"], Sfx> = { strong: "success", close: "close", scammed: "fail" };
 import { XRayTimeline } from "./XRayTimeline";
 
 // Scam X-Ray (Phase 4B): เปิดผลแบบ dramatic ตามลำดับใน useReveal — กด "ข้าม" ได้ตลอด
@@ -19,25 +25,33 @@ export function XRayScreen({ level, session, analysis, score, game, onRetryLevel
   const { stage, play, skip } = useReveal(session.sessionId);
   const showDetails = stage === "details" || stage === "done";
 
+  // เสียงตอนประทับผล (เฉพาะรอบแรกที่เล่นลำดับเปิดผล)
+  useEffect(() => {
+    if (play && stage === "verdict") playSfx(VERDICT_SFX[score.grade]);
+  }, [play, stage, score.grade]);
+
   return (
     <Screen className="gap-5">
       {stage !== "done" && (
         <button
           type="button"
           onClick={skip}
-          className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-40 rounded-full bg-white/10 px-3 py-1 text-xs text-muted backdrop-blur"
+          className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 z-40 -translate-x-1/2 rounded-full bg-white/15 px-4 py-2 text-sm text-text backdrop-blur"
         >
           {COPY.skip}
         </button>
       )}
       {play && stage !== "count" && score.grade === "strong" && <Confetti seed={seedFrom(session.sessionId)} />}
 
-      <header>
-        <p className="text-sm text-xray">{COPY.xrayTitle}</p>
-        <h1 className="text-xl font-bold">{level.title}</h1>
-        <p className="text-sm text-muted">
-          {level.callerId} · {ENDED_BY_LABELS[session.endedBy]}
-        </p>
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm text-xray">{COPY.xrayTitle}</p>
+          <h1 className="text-xl font-bold">{level.title}</h1>
+          <p className="text-sm text-muted">
+            {level.callerId} · {ENDED_BY_LABELS[session.endedBy]}
+          </p>
+        </div>
+        <SoundToggle className="shrink-0" />
       </header>
 
       <ScoreCard score={score} stage={stage} play={play} />

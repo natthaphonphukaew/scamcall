@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PlayerChip } from "@/components/game/PlayerChip";
+import { SoundToggle } from "@/components/ui/SoundToggle";
 import { COPY } from "@/lib/copy";
 
 /** แถบบน/ล่างที่ลอยทับแผนที่ — ปุ่มเล็ก ไม่บังฉาก */
@@ -15,9 +16,12 @@ export function CampusHud({ saved, total, attribution }: { saved: number; total:
         </div>
         <div className="pointer-events-auto flex flex-col items-end gap-2">
           <PlayerChip />
-          <Link href="/levels" className="rounded-full bg-black/55 px-3 py-1 text-xs text-white backdrop-blur">
-            {COPY.levelList}
-          </Link>
+          <div className="flex gap-2">
+            <SoundToggle className="text-xs text-white" />
+            <Link href="/levels" className="rounded-full bg-black/55 px-3 py-1 text-xs text-white backdrop-blur">
+              {COPY.levelList}
+            </Link>
+          </div>
         </div>
       </header>
 

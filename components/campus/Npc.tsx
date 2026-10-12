@@ -129,9 +129,14 @@ export function NpcBadge({
       aria-label={`${name}: ${hook}`}
     >
       <span
-        className={`flex size-8 items-center justify-center rounded-full text-lg font-bold shadow-lg transition ${selected ? "scale-125" : ""} ${BADGE[status].className}`}
+        className={`relative flex size-8 items-center justify-center rounded-full text-lg font-bold shadow-lg transition ${selected ? "scale-125" : ""} ${BADGE[status].className}`}
       >
         {BADGE[status].icon}
+        {status === "saved" && (
+          <span aria-hidden className="pointer-events-none absolute -right-2 -top-2 text-sm motion-safe:animate-twinkle">
+            ✨
+          </span>
+        )}
       </span>
       <span className="whitespace-nowrap rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-slate-900 shadow">
         {name}

@@ -19,7 +19,8 @@ export interface LevelStat {
   plays: number;
   /** 0–100 */
   scammedPercent: number;
-  avgLateSeconds: number;
+  /** null = ไม่มีสายโทรให้คิด (ยังไม่มีคนเล่น หรือเป็นด่านแชท) */
+  avgLateSeconds: number | null;
 }
 
 export interface Boards {
@@ -100,12 +101,14 @@ export function computeBoards(
 export function computeLevelStats(allPlays: PlayRecord[], levelIds: readonly string[]): LevelStat[] {
   return levelIds.map((levelId) => {
     const ps = allPlays.filter((p) => p.levelId === levelId);
-    const faced = ps.filter((p) => p.endedBy !== "declined");
+    const facedCalls = ps.filter((p) => p.endedBy !== "declined" && p.channel !== "chat");
     return {
       levelId,
       plays: ps.length,
       scammedPercent: ps.length ? Math.round((ps.filter((p) => p.complied || p.grade === "scammed").length / ps.length) * 100) : 0,
-      avgLateSeconds: faced.length ? round1(faced.reduce((s, p) => s + lateSecondsOf(p), 0) / faced.length) : 0,
+      avgLateSeconds: facedCalls.length
+        ? round1(facedCalls.reduce((s, p) => s + lateSecondsOf(p), 0) / facedCalls.length)
+        : null,
     };
   });
 }

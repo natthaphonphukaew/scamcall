@@ -95,7 +95,8 @@ async function Boards() {
                     <div className="h-full bg-danger" style={{ width: `${s.scammedPercent}%` }} />
                   </div>
                   <p className="text-muted">
-                    โดนหลอก {s.scammedPercent}% จาก {s.plays} สาย · วางช้าเฉลี่ย {s.avgLateSeconds} วิ
+                    โดนหลอก {s.scammedPercent}% จาก {s.plays} รอบ
+                    {s.avgLateSeconds !== null && ` · วางช้าเฉลี่ย ${s.avgLateSeconds} วิ`}
                   </p>
                 </>
               )}
