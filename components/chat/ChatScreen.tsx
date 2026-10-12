@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { COPY } from "@/lib/copy";
-import { formatClock } from "@/lib/format";
+import { formatClock, initialOf } from "@/lib/format";
 import { MAX_CHAT_CHARS } from "@/lib/chat/constants";
 import { PropCard } from "./PropCard";
 import type { ChatScreenProps } from "./types";
@@ -10,11 +10,6 @@ import type { ChatScreenProps } from "./types";
 // หน้าตาแอปแชททั่วไป (ไม่เลียนแบบแอปจริงตัวไหน) — ปุ่มบล็อกอยู่บนหัวแชทตลอด (CLAUDE.md ข้อ 7.3)
 
 const SHOW_REMAINING_BELOW = 10;
-
-/** ตัวอักษรบนรูปโปรไฟล์: พยัญชนะ/ตัวอักษรตัวแรก (ข้ามสระหน้าอย่าง "แ" ใน "แอดมิน") */
-function initialOf(name: string): string {
-  return Array.from(name).find((ch) => /[ก-ฮA-Za-z0-9]/.test(ch)) ?? "?";
-}
 
 function TypingBubble() {
   return (

@@ -10,6 +10,7 @@ import { readConsent, useConsent, writeConsent } from "@/lib/consent";
 import { ERROR_MESSAGES } from "@/lib/copy";
 import { useLiveCall } from "@/lib/live/useLiveCall";
 import { useRingtone } from "@/lib/live/useRingtone";
+import { useRingVibration } from "@/lib/live/useVibration";
 import type { PublicScenario } from "@/lib/types";
 
 const canSaveTranscript = () => readConsent()?.saveTranscript === true;
@@ -21,7 +22,9 @@ export default function CallController({ scenario }: { scenario: PublicScenario 
   const call = useLiveCall(scenario.id, canSaveTranscript);
   const errorMessage = call.error ? ERROR_MESSAGES[call.error] : null;
 
-  useRingtone(consent !== null && call.status === "ringing" && call.error === null);
+  const ringing = consent !== null && call.status === "ringing" && call.error === null;
+  useRingtone(ringing);
+  useRingVibration(ringing);
 
   if (!ready) return null;
 

@@ -9,6 +9,9 @@ import type { Channel, EndedBy, ScoreResult, Speaker, TacticId } from "@/lib/typ
 export const COPY = {
   simulationBadge: "การจำลองเพื่อการฝึก",
   incoming: "สายเรียกเข้า…",
+  slideToAnswer: "ปัดเพื่อรับสาย",
+  slideHint: "ปัดไปทางขวา →",
+  notInContacts: "ไม่อยู่ในรายชื่อผู้ติดต่อ",
   answer: "รับสาย",
   decline: "ตัดสาย",
   hangUp: "วางสาย",

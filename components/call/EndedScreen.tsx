@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
+import { PhoneIcon } from "@/components/ui/PhoneIcon";
 import { TranscriptList } from "@/components/ui/TranscriptList";
 import { COPY, ENDED_BY_LABELS } from "@/lib/copy";
 import { formatClock } from "@/lib/format";
 import { REDACTION_LABELS } from "@/lib/privacy/mask";
 import type { EndedScreenProps } from "./types";
 
-// Week 1: สรุปสายแบบเรียบ — Week 3 แทนด้วย Scam X-Ray + คะแนน
+// สรุปหลังวางสาย → ไปต่อที่ Scam X-Ray
 export function EndedScreen({
   scenario,
   result,
@@ -21,8 +22,11 @@ export function EndedScreen({
   ];
 
   return (
-    <Screen className="gap-4">
-      <header className="text-center">
+    <Screen className="gap-4 bg-call">
+      <header className="flex flex-col items-center text-center">
+        <span className="mb-3 flex size-14 items-center justify-center rounded-full bg-danger/20 text-danger">
+          <PhoneIcon hangUp />
+        </span>
         <p className="text-muted">{COPY.ended}</p>
         <h1 className="text-xl font-bold">{scenario.callerId}</h1>
         <p className="mt-1">{ENDED_BY_LABELS[result.endedBy]}</p>
