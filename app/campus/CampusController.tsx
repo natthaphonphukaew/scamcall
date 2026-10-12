@@ -67,9 +67,9 @@ export default function CampusController({ levels }: { levels: PublicScenario[] 
   const savedCount = playable.filter((n) => saved.has(n.levelId)).length;
 
   const startLevel = () => {
-    if (!selected) return;
-    // แชท (Phase 3) จะใช้ /chat/[id] — ตอนนี้มีแต่สายโทร
-    router.push(`/call/${selected.levelId}`);
+    const level = selected ? levelById.get(selected.levelId) : undefined;
+    if (!level) return;
+    router.push(`/${level.channel}/${level.id}`);
   };
   const openHall = () => router.push("/hall");
 

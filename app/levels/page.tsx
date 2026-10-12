@@ -30,13 +30,15 @@ export default function LevelsPage() {
         {levels.map((level, i) => (
           <li key={level.id}>
             <Link
-              href={`/call/${level.id}`}
+              href={`/${level.channel}/${level.id}`}
               className="flex items-center justify-between gap-3 rounded-card bg-surface-raised p-4 active:scale-[0.99]"
             >
               <div>
                 <p className="text-xs text-muted">ด่าน {i + 1}</p>
                 <p className="font-medium">{level.title}</p>
-                <p className="text-sm text-muted">{level.callerId}</p>
+                <p className="text-sm text-muted">
+                  {level.channel === "chat" ? "💬" : "📞"} {level.callerId}
+                </p>
               </div>
               <span className="shrink-0 text-sm text-scammer">
                 {"★".repeat(level.difficulty)}

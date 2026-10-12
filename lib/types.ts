@@ -38,10 +38,49 @@ export interface Scenario {
   channel?: Channel;
   voice?: string;
   maxSeconds?: number;
+  /** แชท: ข้อความแรกที่คนร้ายส่งมาก่อน (ไม่ระบุ = [openingLine]) — callerId ใช้เป็นชื่อผู้ติดต่อ */
+  openingMessages?: string[];
+  /** แชท: การ์ดประกอบที่คนร้ายส่งได้ในด่านนี้ (ไม่ระบุ = ไม่มี) */
+  chatProps?: ChatPropKind[];
 }
 
 /** ข้อมูลด่านที่ส่งไป browser ได้ (ไม่มี persona/escalation ที่ใช้สร้างพรอมต์) */
-export type PublicScenario = Pick<Scenario, "id" | "title" | "difficulty" | "callerId">;
+export type PublicScenario = Pick<Scenario, "id" | "title" | "difficulty" | "callerId"> & { channel: Channel };
+
+// ---- แชทจำลอง (docs/GAME_SPEC.md ข้อ 10) ----
+
+/** การ์ดประกอบในแชท — วาดเองทั้งหมด ไม่มีโลโก้ธนาคาร/แอปจริง ลิงก์เป็นโดเมน .example เท่านั้น */
+export type ChatPropKind = "link" | "profit" | "slip";
+
+export type ChatProp =
+  | { kind: "link"; title: string; domain: string }
+  | { kind: "profit"; title: string; percent: number }
+  | { kind: "slip"; amount: number; note: string };
+
+export interface ChatMessage {
+  speaker: Speaker;
+  text: string;
+  prop?: ChatProp;
+}
+
+/** request ของ POST /api/chat — ประวัติแชททั้งหมด (stateless) */
+export interface ChatRequest {
+  levelId: string;
+  history: ChatMessage[];
+  /** true = ผู้เล่นเงียบไปนาน ให้คนร้ายทักซ้ำ */
+  nudge?: boolean;
+}
+
+/** response ของ POST /api/chat */
+export interface ChatResponse {
+  messages: { text: string; prop?: ChatProp }[];
+}
+
+/** ข้อมูลเปิดแชทที่ส่งไป browser ได้ */
+export interface ChatIntro {
+  contact: string;
+  openingMessages: string[];
+}
 
 /** response ของ POST /api/token */
 export interface LiveTokenResponse {
@@ -68,6 +107,8 @@ export type EndedBy = "player" | "timeout" | "error" | "declined";
 export interface CallSession {
   sessionId: string;
   levelId: string;
+  /** ไม่ระบุ = "call" · แชทใช้โครงเดียวกัน (t = วินาทีตั้งแต่เริ่มแชท, endedBy "player" = บล็อก) */
+  channel?: Channel;
   startedAt: string;
   endedAt: string;
   endedBy: EndedBy;

@@ -6,7 +6,7 @@ import { useSyncExternalStore } from "react";
 // เก็บใน localStorage ของเครื่องผู้เล่นเท่านั้น — ไม่ส่งไป server
 
 export interface Consent {
-  /** เข้าใจว่าเป็นการจำลอง + เสียงถูกส่งไปประมวลผลที่ Google — ต้องเป็น true ถึงจะรับสายได้ */
+  /** เข้าใจว่าเป็นการจำลอง + เสียง/ข้อความแชทถูกส่งไปประมวลผลที่ Google — ต้องเป็น true ถึงจะเล่นได้ */
   acknowledged: true;
   /** ยืนยันว่าอายุ 18 ปีขึ้นไป (เงื่อนไข Gemini API) — ต้องเป็น true */
   adult: true;
@@ -16,7 +16,8 @@ export interface Consent {
 
 // v2 (2026-10-11): เพิ่มข้อแจ้งเรื่อง Gemini free tier + อายุ 18+
 // v3 (2026-10-11): เพิ่มข้อแจ้งเรื่องฉายา/คะแนนบนบอร์ดเกม → ทุกคนต้องยินยอมใหม่
-const KEY = "scamcall:consent:v3";
+// v4 (2026-10-12): แชทจำลอง — ข้อความที่พิมพ์ถูกส่งไปประมวลผลที่ Google ด้วย
+const KEY = "scamcall:consent:v4";
 const CHANGE_EVENT = "scamcall:consent-change";
 const SERVER = "__server__";
 

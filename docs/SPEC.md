@@ -121,6 +121,22 @@ idle ──(เปิดหน้า)──▶ ringing ──(รับสาย
 - ตาราง: `supabase/migrations/001_scamcall.sql` — RLS เปิด ไม่มี policy, server ใช้ secret key (`sb_secret_...`) ผ่าน `lib/server/db.ts` เท่านั้น
 - ตัวชี้วัดหลักของ playtest: **วางช้าเฉลี่ย** = `max(0, hangupT − shouldHangUpAt)` (เทียบข้ามด่านได้) + คะแนนเฉลี่ย + % ยอมโอน, เทียบรอบ 1 vs 2
 
+### 3.4 `POST /api/chat` (v2 Phase 3 — แชทจำลอง)
+
+**Request** (`ChatRequest`): `{ levelId, history: ChatMessage[], nudge? }` — ประวัติแชททั้งหมดทุกครั้ง (stateless, server ไม่เก็บ)
+**Response** (`ChatResponse`): `{ messages: [{ text, prop? }] }` 1–3 ข้อความ
+
+1. `parseChatRequest` ตรวจรูป: ≤ 39 ข้อความในประวัติ (`MAX_CHAT_MESSAGES` 40 รวมคำตอบ), ข้อความละ ≤ 500 ตัวอักษร
+2. `sanitizeHistoryMessage` กรองประวัติซ้ำ (มาจาก browser): mask ข้อความผู้เล่น, การ์ดต้องเป็นชนิดที่ด่านอนุญาต
+3. `buildChatSystemPrompt(scenario)` + `buildChatTurnPrompt(history, nudge)` → Gemini text (`GEMINI_CHAT_MODEL` หรือรุ่นเดียวกับ X-Ray) + `responseJsonSchema` = `chatResponseSchema(scenario.chatProps)`
+4. `sanitizeReply` กรองคำตอบก่อนถึงผู้เล่น: ลิงก์/ชื่อเว็บในข้อความ → `[ลิงก์]`, ตัวเลขที่ดูเหมือนเลขบัญชี/บัตร/เบอร์ → mask, การ์ดไม่เกิน 1 ใบต่อรอบ, การ์ดลิงก์บังคับโดเมน `*.example`
+5. การ์ด (`ChatProp`) มี 3 แบบที่วาดเอง ไม่มีโลโก้จริง: `link { title, domain }` · `profit { title, percent }` · `slip { amount, note }` — มีป้าย "ภาพจำลองในเกม" และกดลิงก์แล้วได้คำเตือนแทน
+
+**Errors**: 400 `bad_request` · 404 `level_not_found` (ไม่มีด่าน หรือด่านไม่ใช่แชท) · 429 `rate_limited` (20/นาที/IP) · 502 `chat_failed` (UI มีปุ่ม "ลองใหม่")
+
+**Client** (`lib/chat/ChatController.ts` + `useChat`): คนร้ายส่ง `openingMessages` ก่อน → ผู้เล่นพิมพ์ (mask ก่อนเก็บ) → "กำลังพิมพ์…" ตามความยาวข้อความ → ผู้เล่นเงียบ 30 วิ คนร้ายทักซ้ำ (≤ 2 ครั้ง) → กด 🚫 บล็อก = วางสาย หรือครบ 40 ข้อความ = `timeout`
+→ แปลงเป็น `CallSession` (`channel: "chat"`, `t` = วินาทีตั้งแต่เริ่มแชท, การ์ดเขียนเป็นข้อความในวงเล็บ) แล้วใช้ `/api/analyze` + หน้า X-Ray + XP ชุดเดิม (`/api/analyze` ตั้ง `channel` จากไฟล์ด่านเสมอ)
+
 ---
 
 ## 4. Data types (`lib/types.ts`)
@@ -222,6 +238,16 @@ export interface ScoreResult {
 | `saidCallback` | +10 |
 | สุดท้าย | clamp 0–100 |
 
+**แชท** (`session.channel === "chat"`) ฐานเวลานับเป็น **จำนวนข้อความคนร้ายหลัง `shouldHangUpAt`** แทนวินาที (คนอ่าน/พิมพ์ช้าไม่โดนหัก — โดนหักเมื่อยังคุยต่อ)
+
+| กฎแชท | ค่า |
+|---|---|
+| ข้อความคนร้ายหลังจุดที่ควรบล็อก ≤ 1 (ผ่อนผันให้อ่าน 1 ข้อความ) | 100 "บล็อกทันเวลา" |
+| เกินจากนั้น | `100 − 10 × จำนวนที่เกิน` ต่ำสุด 40 |
+| `endedBy === 'timeout'` (คุยจนครบ 40 ข้อความ) | 40 |
+
+กฎข้อมูลหลุด / `complied` / `saidCallback` ใช้เหมือนสายโทร · โบนัส XP "วางสายทันเวลา" ของแชท = บล็อกเองและได้เกรด `strong` (จำนวนข้อความไม่อยู่ในผลที่เซ็น)
+
 เกรด: ≥ 90 `strong` "ภูมิคุ้มกันแกร่ง" · 60–89 `close` "รอดแบบเฉียดฉิว" · < 60 `scammed` "โดนหลอกแล้ว"
 
 > ตัวเลขเป็นร่างแรก — ปรับหลังทดสอบกับเพื่อนใน Week 4 (ทุกครั้งที่ปรับต้องแก้ test ด้วย)
@@ -246,8 +272,8 @@ export interface ScoreResult {
    ยกเว้นสายด่วนทางการ (1441, 1599, 1213, 1111, 1202) ไม่ mask เพราะเป็นคำตอบที่ถูก
 4. ใช้กับ **ทั้งสองฝั่ง** (ทั้ง player และ scammer) ก่อนเก็บลง turn ทุกครั้ง
 5. ค่าจริงไม่ถูกเก็บที่ไหนเลย — เก็บแค่ `redactions`
-6. **ความยินยอม** (`lib/consent.ts`, เก็บใน localStorage `scamcall:consent:v2` ของเครื่องผู้เล่นเท่านั้น — v2 เมื่อ 2026-10-11 ทุกคนต้องยินยอมใหม่)
-   - `acknowledged` (บังคับ) — เข้าใจว่าเป็นการจำลอง ปลายสายคือ AI และเสียงถูกส่งไปประมวลผลที่ Google ก่อนรับสายได้ ทั้งจากหน้าแรกและเมื่อเปิดลิงก์ `/call/*` ตรงๆ
+6. **ความยินยอม** (`lib/consent.ts`, เก็บใน localStorage `scamcall:consent:v4` ของเครื่องผู้เล่นเท่านั้น — เปลี่ยนเวอร์ชันเมื่อข้อความแจ้งเปลี่ยน ทุกคนต้องยินยอมใหม่: v2 Gemini free tier + 18+, v3 ฉายาบนบอร์ด, v4 (2026-10-12) ข้อความแชทถูกส่งไป Google)
+   - `acknowledged` (บังคับ) — เข้าใจว่าเป็นการจำลอง ปลายสาย/คู่แชทคือ AI และเสียง/ข้อความที่พิมพ์ถูกส่งไปประมวลผลที่ Google ก่อนเล่นได้ ทั้งจากหน้าแรกและเมื่อเปิดลิงก์ `/call/*` หรือ `/chat/*` ตรงๆ
    - `adult` (บังคับ) — อายุ 18 ปีขึ้นไป ตามเงื่อนไข Gemini API
    - ข้อความแจ้ง (`DISCLAIMER_POINTS`) บอกว่า Gemini free tier อาจนำข้อมูลไปปรับปรุงบริการและอาจมีคนตรวจอ่าน → อย่าพูดข้อมูลจริง
    - `saveTranscript` (ไม่บังคับ, ค่าเริ่มต้นติ๊กไว้) — เก็บ transcript ที่ mask แล้วลง sessionStorage + ส่งให้ AI วิเคราะห์ X-Ray; ถ้าไม่ยินยอม `LiveCallController` จะไม่บันทึก และหน้าจบสายบอกว่า "ไม่ได้บันทึก"
@@ -346,6 +372,7 @@ session.onmessage
 | `GEMINI_LIVE_MODEL` | `gemini-3.8-live` | เช็กกับ ai.google.dev/gemini-api/docs/models ณ 2026-10-09 |
 | `GEMINI_ANALYSIS_MODEL` | `gemini-3.5-flash-lite` | ถ้าแท็กไม่แม่นค่อยขยับไป `gemini-3.8-flash` |
 | `GEMINI_LIVE_VOICE` | `Orus` | default ถ้า scenario ไม่ระบุ — ฟังจริงแล้วค่อยเลือก |
+| `GEMINI_CHAT_MODEL` | (ว่าง = ใช้ `GEMINI_ANALYSIS_MODEL`) | ไม่บังคับ — text model ของแชทจำลอง (`/api/chat`) |
 | `MAX_CALL_SECONDS` | `180` | ช่วง dev ตั้ง 60 ประหยัดโควตา |
 
 ---

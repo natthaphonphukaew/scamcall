@@ -9,6 +9,16 @@ export const MIN_TIMING_SCORE = 40;
 export const LEAK_PENALTY = 10;
 export const CALLBACK_BONUS = 10;
 
+/** แชท: นับเป็น "ข้อความคนร้ายหลังจุดที่ควรบล็อก" แทนวินาที — ผ่อนผันให้อ่านได้ 1 ข้อความ */
+export const CHAT_GRACE_MESSAGES = 1;
+export const LATE_MESSAGE_PENALTY = 10;
+
+/** จำนวนข้อความคนร้ายที่ผู้เล่นยังรับต่อหลังจุดที่ควรบล็อก (ไม่รวมช่วงผ่อนผัน) */
+export function lateChatMessages(session: CallSession, shouldHangUpAt: number): number {
+  const after = session.turns.filter((t) => t.speaker === "scammer" && t.t > shouldHangUpAt).length;
+  return Math.max(0, after - CHAT_GRACE_MESSAGES);
+}
+
 export function gradeFor(score: number): ScoreResult["grade"] {
   if (score >= 90) return "strong";
   if (score >= 60) return "close";
@@ -30,7 +40,17 @@ export function computeScore(session: CallSession, analysis: AnalysisResult): Sc
   const breakdown: ScoreResult["breakdown"] = [];
   const deadline = analysis.shouldHangUpAt + HANG_UP_GRACE_SECONDS;
 
-  if (session.endedBy === "timeout") {
+  if (session.channel === "chat") {
+    const late = lateChatMessages(session, analysis.shouldHangUpAt);
+    if (session.endedBy === "timeout") {
+      breakdown.push({ label: "ไม่ได้บล็อกเอง (คุยจนครบ)", delta: MIN_TIMING_SCORE });
+    } else if (late === 0) {
+      breakdown.push({ label: "บล็อกทันเวลา", delta: 100 });
+    } else {
+      const timing = Math.max(MIN_TIMING_SCORE, 100 - late * LATE_MESSAGE_PENALTY);
+      breakdown.push({ label: `บล็อกช้าไป ${late} ข้อความ`, delta: timing });
+    }
+  } else if (session.endedBy === "timeout") {
     breakdown.push({ label: "ไม่ได้วางสายเอง (ครบเวลา)", delta: MIN_TIMING_SCORE });
   } else if (session.hangupT <= deadline) {
     breakdown.push({ label: "วางสายทันเวลา", delta: 100 });
@@ -44,7 +64,10 @@ export function computeScore(session: CallSession, analysis: AnalysisResult): Sc
     breakdown.push({ label: `ข้อมูลหลุด: ${item}`, delta: -LEAK_PENALTY });
   }
   if (analysis.saidCallback) {
-    breakdown.push({ label: "บอกว่าจะโทรกลับเบอร์ทางการ / 1441", delta: CALLBACK_BONUS });
+    breakdown.push({
+      label: session.channel === "chat" ? "บอกว่าจะตรวจสอบกับช่องทางทางการ / 1441" : "บอกว่าจะโทรกลับเบอร์ทางการ / 1441",
+      delta: CALLBACK_BONUS,
+    });
   }
 
   const raw = breakdown.reduce((sum, b) => sum + b.delta, 0);

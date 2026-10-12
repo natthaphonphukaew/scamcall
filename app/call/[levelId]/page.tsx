@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getScenario, listScenarios, toPublicScenario } from "@/lib/scenarios/load";
+import { getScenario, listScenariosByChannel, toPublicScenario } from "@/lib/scenarios/load";
 import CallController from "./CallController";
 
 // ด่านทั้งหมดรู้ตั้งแต่ build → prerender ทุกด่าน (Cache Components ต้องการอย่างน้อย 1 param)
 export function generateStaticParams() {
-  return listScenarios().map((s) => ({ levelId: s.id }));
+  return listScenariosByChannel("call").map((s) => ({ levelId: s.id }));
 }
 
 // await params ภายใน <Suspense> ตามแนวทาง Cache Components + Partial Prefetching ของ Next 16
@@ -21,6 +21,6 @@ export default function CallPage({ params }: PageProps<"/call/[levelId]">) {
 async function Level({ params }: Pick<PageProps<"/call/[levelId]">, "params">) {
   const { levelId } = await params;
   const scenario = getScenario(levelId);
-  if (!scenario) notFound();
+  if (!scenario || scenario.channel === "chat") notFound();
   return <CallController scenario={toPublicScenario(scenario)} />;
 }

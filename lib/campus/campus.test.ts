@@ -146,7 +146,11 @@ describe("NPCs", () => {
     }
   });
 
-  it("call NPCs point at real levels (chat levels arrive in Phase 3)", () => {
-    for (const n of NPCS.filter((n) => n.channel === "call")) expect(getScenario(n.levelId)).not.toBeNull();
+  it("every NPC points at a real level on the same channel", () => {
+    for (const n of NPCS) {
+      const level = getScenario(n.levelId);
+      expect(level, n.id).not.toBeNull();
+      expect(level?.channel, n.id).toBe(n.channel);
+    }
   });
 });

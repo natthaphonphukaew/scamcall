@@ -30,6 +30,9 @@ export async function POST(req: NextRequest) {
 
   if (!takeAnalysis(clientIp(req))) return errorResponse(429, "rate_limited");
 
+  // ช่องทางมาจากไฟล์ด่านเสมอ (ไม่เชื่อ browser) — แชทคิดคะแนนเป็นจำนวนข้อความ
+  session = { ...session, channel: scenario.channel ?? "call" };
+
   try {
     const analysis = await analyzeCall(session, scenario, getAnalysisEnv());
 

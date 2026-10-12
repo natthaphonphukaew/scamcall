@@ -109,7 +109,7 @@ export default function XRayController({ sessionId }: { sessionId: string }) {
         onOpenHall: () => router.push("/hall"),
         playtest: playtest ? { ...playtest, status: playtestStatus ?? "sending" } : null,
       }}
-      onRetryLevel={() => router.push(`/call/${session.levelId}`)}
+      onRetryLevel={() => router.push(`/${session.channel ?? "call"}/${session.levelId}`)}
       onBackToCampus={() => router.push("/campus")}
     />
   );

@@ -33,7 +33,12 @@ export function XRayScreen({
 
       {analysis.summary && <p className="leading-relaxed">{analysis.summary}</p>}
 
-      <PressureChart turns={analysis.turns} shouldHangUpAt={analysis.shouldHangUpAt} hangupT={hangupT} />
+      <PressureChart
+        turns={analysis.turns}
+        channel={session.channel ?? "call"}
+        shouldHangUpAt={analysis.shouldHangUpAt}
+        hangupT={hangupT}
+      />
 
       <section className="rounded-card bg-surface-raised p-4 text-sm">
         <h2 className="mb-1 font-bold">{COPY.leakedTitle}</h2>
@@ -42,7 +47,12 @@ export function XRayScreen({
         </p>
       </section>
 
-      <XRayTimeline turns={analysis.turns} shouldHangUpAt={analysis.shouldHangUpAt} hangupT={hangupT} />
+      <XRayTimeline
+        turns={analysis.turns}
+        channel={session.channel ?? "call"}
+        shouldHangUpAt={analysis.shouldHangUpAt}
+        hangupT={hangupT}
+      />
 
       <section className="flex flex-col gap-3">
         <h2 className="font-bold">{COPY.lessonsTitle}</h2>

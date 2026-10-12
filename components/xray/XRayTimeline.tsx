@@ -1,12 +1,13 @@
 import { Fragment } from "react";
-import { COPY, SPEAKER_LABELS, TACTIC_LABELS } from "@/lib/copy";
+import { COPY, endMarkers, SPEAKER_LABELS, TACTIC_LABELS } from "@/lib/copy";
 import { formatClock } from "@/lib/format";
 import type { XRayTimelineProps } from "./types";
 
 // ไทม์ไลน์: เรียงตามลำดับประโยค (ไม่ใช่ตามเวลา — เวลาของผู้เล่นมักเท่ากับประโยคถัดไป ดู week1-findings)
 // ทำหน้าที่เป็น "table view" ของกราฟด้วย: ทุกประโยคคนร้ายมีค่าความกดดันเป็นตัวเลข
 
-export function XRayTimeline({ turns, shouldHangUpAt, hangupT }: XRayTimelineProps) {
+export function XRayTimeline({ turns, channel, shouldHangUpAt, hangupT }: XRayTimelineProps) {
+  const markers = endMarkers(channel);
   const markerIndex = turns.findIndex((t) => t.speaker === "scammer" && t.t === shouldHangUpAt);
 
   return (
@@ -16,9 +17,9 @@ export function XRayTimeline({ turns, shouldHangUpAt, hangupT }: XRayTimelinePro
         {turns.map((turn, i) => (
           <Fragment key={i}>
             {i === markerIndex && (
-              <li className="flex items-center gap-2 text-sm font-bold text-danger" aria-label={COPY.shouldHangUpHere}>
+              <li className="flex items-center gap-2 text-sm font-bold text-danger" aria-label={markers.should}>
                 <span className="h-0.5 flex-1 bg-danger" />
-                {COPY.shouldHangUpHere} · {formatClock(shouldHangUpAt)}
+                {markers.should} · {formatClock(shouldHangUpAt)}
                 <span className="h-0.5 flex-1 bg-danger" />
               </li>
             )}
@@ -53,7 +54,7 @@ export function XRayTimeline({ turns, shouldHangUpAt, hangupT }: XRayTimelinePro
         {hangupT !== null && (
           <li className="flex items-center gap-2 text-sm font-bold text-player">
             <span className="h-0.5 flex-1 bg-player" />
-            {COPY.youHungUp} · {formatClock(hangupT)}
+            {markers.you} · {formatClock(hangupT)}
             <span className="h-0.5 flex-1 bg-player" />
           </li>
         )}

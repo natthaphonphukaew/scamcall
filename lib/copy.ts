@@ -1,7 +1,8 @@
+import type { ChatErrorCode } from "@/lib/chat/ChatController";
 import type { CallErrorCode } from "@/lib/live/LiveCallController";
 import { SAFE_WORD } from "@/lib/live/constants";
 import type { BadgeId, TitleId } from "@/lib/game/types";
-import type { EndedBy, ScoreResult, Speaker, TacticId } from "@/lib/types";
+import type { Channel, EndedBy, ScoreResult, Speaker, TacticId } from "@/lib/types";
 
 // ข้อความ UI ภาษาไทยที่ใช้ซ้ำ — แก้คำที่นี่ที่เดียว (docs/SPEC.md ข้อ 15)
 
@@ -29,10 +30,10 @@ export const COPY = {
   tagline: "วัคซีนมิจฉาชีพ — โดนหลอกแบบปลอดภัย ก่อนเจอของจริง",
   consentTitle: "ก่อนเริ่มฝึก",
   consentAcknowledge:
-    "ฉันเข้าใจว่านี่คือการจำลองเพื่อการฝึก ปลายสายคือ AI และเสียงที่พูดจะถูกส่งไปประมวลผลที่ Google",
+    "ฉันเข้าใจว่านี่คือการจำลองเพื่อการฝึก ปลายสาย/คู่แชทคือ AI และเสียงที่พูดกับข้อความที่พิมพ์จะถูกส่งไปประมวลผลที่ Google",
   consentAdult: "ฉันอายุ 18 ปีขึ้นไป",
   consentSaveTranscript:
-    "เก็บบทสนทนา (ที่ซ่อนตัวเลขสำคัญแล้ว) ไว้ในเครื่องนี้ และส่งให้ AI วิเคราะห์เป็น Scam X-Ray หลังวางสาย (ไม่บังคับ)",
+    "เก็บบทสนทนา (ที่ซ่อนตัวเลขสำคัญแล้ว) ไว้ในเครื่องนี้ และส่งให้ AI วิเคราะห์เป็น Scam X-Ray หลังวางสาย/บล็อก (ไม่บังคับ)",
   startTraining: "เริ่มฝึก",
 
   openXRay: "ดู Scam X-Ray",
@@ -136,15 +137,36 @@ export const COPY = {
   playtestErrorLabel: "ส่งผลทดสอบไม่สำเร็จ",
 
   levelsTitle: "เลือกด่าน",
-  levelsHint: "แต่ละด่านจำลองรูปแบบการหลอกที่เกิดขึ้นจริง — วางสายให้เร็วที่สุดเมื่อรู้ตัว",
+  levelsHint: "แต่ละด่านจำลองรูปแบบการหลอกที่เกิดขึ้นจริง — วางสาย/บล็อกให้เร็วที่สุดเมื่อรู้ตัว",
+
+  // ---- แชทจำลอง (docs/GAME_SPEC.md ข้อ 10) ----
+  chatOnline: "ออนไลน์",
+  chatTyping: "กำลังพิมพ์…",
+  chatBlock: "🚫 บล็อก/รายงาน",
+  chatNotice: "แชทจำลองเพื่อการฝึก — คู่แชทคือ AI · บล็อกได้ทุกเมื่อ",
+  chatPlaceholder: "พิมพ์ข้อความ…",
+  chatWaiting: "รอข้อความ…",
+  chatSend: "ส่ง",
+  chatRead: "อ่านแล้ว",
+  chatSafeWordHint: `พิมพ์ "${SAFE_WORD}" หรือกดบล็อกได้ทุกเมื่อ`,
+  chatRemaining: (n: number) => `เหลืออีก ${n} ข้อความก่อนแชทจบอัตโนมัติ`,
+  chatEnded: "จบแชทแล้ว",
+  chatLength: "ความยาวแชท",
+  chatRestart: "เริ่มแชทใหม่",
+  chatLinkOpen: "เปิดลิงก์",
+  chatLinkWarning: "🚩 ลิงก์ในเกมนี้ปลอม — ชีวิตจริงห้ามกดลิงก์จากคนแปลกหน้า อาจโดนดูดข้อมูลหรือเงิน",
+  chatPropWatermark: "ภาพจำลองในเกม",
+  chatSlipTitle: "โอนเงินสำเร็จ",
+  shouldBlockHere: "ควรบล็อกตรงนี้",
+  youBlocked: "คุณบล็อก",
 } as const;
 
 /** ข้อความแจ้งก่อนเริ่ม (CLAUDE.md ข้อ 7.3) */
 export const DISCLAIMER_POINTS = [
   "นี่คือการจำลองเพื่อการฝึกเท่านั้น ปลายสายคือ AI ที่เล่นบทมิจฉาชีพ",
   "ไม่มีการโทรออกจริง และไม่ต้องใช้ข้อมูลจริงของคุณ — ถ้าต้องตอบ ให้แต่งข้อมูลขึ้นมาเอง",
-  `วางสายได้ทุกเมื่อ หรือพูดว่า "${SAFE_WORD}" ถ้ารู้สึกไม่สบายใจ`,
-  "แอปนี้ไม่บันทึกเสียงของคุณ แต่เสียงและบทสนทนาถูกส่งไปประมวลผลที่ Google Gemini (บริการฟรี) ซึ่ง Google อาจนำไปใช้ปรับปรุงบริการ และอาจมีเจ้าหน้าที่ตรวจอ่าน — อย่าพูดข้อมูลจริงหรือข้อมูลส่วนตัวใดๆ",
+  `วางสาย/บล็อกได้ทุกเมื่อ หรือพูด/พิมพ์ว่า "${SAFE_WORD}" ถ้ารู้สึกไม่สบายใจ`,
+  "แอปนี้ไม่บันทึกเสียงของคุณ แต่เสียง ข้อความแชท และบทสนทนาถูกส่งไปประมวลผลที่ Google Gemini (บริการฟรี) ซึ่ง Google อาจนำไปใช้ปรับปรุงบริการ และอาจมีเจ้าหน้าที่ตรวจอ่าน — อย่าพูดหรือพิมพ์ข้อมูลจริงหรือข้อมูลส่วนตัวใดๆ",
   "ใช้ได้เฉพาะผู้ที่อายุ 18 ปีขึ้นไป (ตามเงื่อนไขของ Gemini API)",
   "ฉายา (ชื่อสุ่ม ไม่ใช่ชื่อจริง) เลเวล และคะแนนของคุณอาจแสดงบนบอร์ดของเกม",
 ] as const;
@@ -194,6 +216,26 @@ export const ERROR_MESSAGES: Record<CallErrorCode, string> = {
   connect_failed: "ต่อสายไม่ติด ลองใหม่อีกครั้ง",
   disconnected: "สายหลุดกลางทาง",
   backgrounded: "ระบบวางสายให้ เพราะออกจากแอปนานเกิน 10 วินาที",
+};
+
+/** ป้าย "ควรวางสาย/คุณวางสาย" ในหน้า X-Ray — แชทใช้คำว่าบล็อก */
+export function endMarkers(channel: Channel): { should: string; you: string } {
+  return channel === "chat"
+    ? { should: COPY.shouldBlockHere, you: COPY.youBlocked }
+    : { should: COPY.shouldHangUpHere, you: COPY.youHungUp };
+}
+
+export const CHAT_ERROR_MESSAGES: Record<ChatErrorCode, string> = {
+  rate_limited: "ส่งเร็วเกินไป รอสักครู่แล้วลองใหม่",
+  send_failed: "ส่งข้อความไม่สำเร็จ (โควตา AI อาจเต็ม)",
+};
+
+/** แชท: "วางสาย" = บล็อก */
+export const CHAT_ENDED_BY_LABELS: Record<EndedBy, string> = {
+  player: "คุณบล็อกเอง",
+  timeout: "แชทจบเพราะครบจำนวนข้อความ",
+  error: "แชทหลุดกลางทาง",
+  declined: "คุณไม่ตอบแชท",
 };
 
 export const ENDED_BY_LABELS: Record<EndedBy, string> = {

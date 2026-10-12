@@ -1,6 +1,6 @@
 import type { PlayResponse } from "@/lib/game/api";
 import type { SubmitOutcome } from "@/lib/results/client";
-import type { AnalysisResult, AnalyzedTurn, CallSession, LevelSummary, ScoreResult } from "@/lib/types";
+import type { AnalysisResult, AnalyzedTurn, CallSession, Channel, LevelSummary, ScoreResult } from "@/lib/types";
 
 // "สัญญา" ระหว่าง logic ของหน้า X-Ray กับหน้าตา (docs/SPEC.md ข้อ 15) — component รับ props ล้วน
 
@@ -28,6 +28,8 @@ export interface XRayScreenProps {
 
 export interface PressureChartProps {
   turns: AnalyzedTurn[];
+  /** แชทใช้คำว่า "บล็อก" แทน "วางสาย" */
+  channel: Channel;
   shouldHangUpAt: number;
   /** null = ไม่ต้องวาดเส้น "คุณวางสาย" (เช่น ไม่รับสาย) */
   hangupT: number | null;
@@ -35,6 +37,7 @@ export interface PressureChartProps {
 
 export interface XRayTimelineProps {
   turns: AnalyzedTurn[];
+  channel: Channel;
   shouldHangUpAt: number;
   hangupT: number | null;
 }

@@ -31,7 +31,7 @@ describe("load", () => {
 
   it("public scenario hides prompt material", () => {
     const pub = toPublicScenario(police!);
-    expect(Object.keys(pub).sort()).toEqual(["callerId", "difficulty", "id", "title"]);
+    expect(Object.keys(pub).sort()).toEqual(["callerId", "channel", "difficulty", "id", "title"]);
   });
 });
 

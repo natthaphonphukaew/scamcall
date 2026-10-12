@@ -1,14 +1,25 @@
-import type { Difficulty, PublicScenario, Scenario } from "@/lib/types";
+import type { ChatIntro, ChatPropKind, Difficulty, PublicScenario, Scenario } from "@/lib/types";
 import bankAccountHacked from "@/scenarios/bank-account-hacked.json";
+import investmentChat from "@/scenarios/investment-chat.json";
+import onlineJobChat from "@/scenarios/online-job-chat.json";
 import parcelIllegalGoods from "@/scenarios/parcel-illegal-goods.json";
 import policeMoneyLaundering from "@/scenarios/police-money-laundering.json";
 import revenueTaxRefund from "@/scenarios/revenue-tax-refund.json";
 
 // ด่านทั้งหมด — เพิ่มด่านใหม่: สร้าง scenarios/<id>.json แล้ว import มาใส่ในลิสต์นี้
 // ใช้ static import (ไม่อ่านไฟล์ด้วย fs) เพื่อให้ bundle ไปกับ Vercel ได้แน่นอน
-const RAW_SCENARIOS: unknown[] = [bankAccountHacked, policeMoneyLaundering, parcelIllegalGoods, revenueTaxRefund];
+const RAW_SCENARIOS: unknown[] = [
+  bankAccountHacked,
+  policeMoneyLaundering,
+  parcelIllegalGoods,
+  revenueTaxRefund,
+  onlineJobChat,
+  investmentChat,
+];
 
 export class ScenarioError extends Error {}
+
+export const CHAT_PROP_KINDS: readonly ChatPropKind[] = ["link", "profit", "slip"];
 
 function fail(id: string, field: string, reason: string): never {
   throw new ScenarioError(`scenario "${id}": ${field} ${reason}`);
@@ -53,6 +64,15 @@ export function parseScenario(raw: unknown): Scenario {
   if (r.maxSeconds !== undefined && (typeof r.maxSeconds !== "number" || r.maxSeconds <= 0)) {
     fail(id, "maxSeconds", "must be a positive number");
   }
+  if (r.openingMessages !== undefined && !isNonEmptyStringArray(r.openingMessages)) {
+    fail(id, "openingMessages", "must be a non-empty string[]");
+  }
+  if (
+    r.chatProps !== undefined &&
+    (!Array.isArray(r.chatProps) || !r.chatProps.every((p) => CHAT_PROP_KINDS.includes(p as ChatPropKind)))
+  ) {
+    fail(id, "chatProps", `must be a subset of ${CHAT_PROP_KINDS.join(", ")}`);
+  }
 
   return {
     id,
@@ -69,6 +89,8 @@ export function parseScenario(raw: unknown): Scenario {
     channel: (r.channel as Scenario["channel"]) ?? "call",
     voice: r.voice as string | undefined,
     maxSeconds: r.maxSeconds as number | undefined,
+    openingMessages: r.openingMessages as string[] | undefined,
+    chatProps: r.chatProps as ChatPropKind[] | undefined,
   };
 }
 
@@ -93,5 +115,15 @@ export function listScenarios(): Scenario[] {
 }
 
 export function toPublicScenario(s: Scenario): PublicScenario {
-  return { id: s.id, title: s.title, difficulty: s.difficulty, callerId: s.callerId };
+  return { id: s.id, title: s.title, difficulty: s.difficulty, callerId: s.callerId, channel: s.channel ?? "call" };
+}
+
+/** ด่านตามช่องทาง — ใช้ทำ generateStaticParams ของ /call และ /chat */
+export function listScenariosByChannel(channel: "call" | "chat"): Scenario[] {
+  return listScenarios().filter((s) => (s.channel ?? "call") === channel);
+}
+
+/** ข้อความเปิดแชท (ส่งไป browser ได้ — คนร้ายส่งมาก่อนผู้เล่นพิมพ์) */
+export function toChatIntro(s: Scenario): ChatIntro {
+  return { contact: s.callerId, openingMessages: s.openingMessages ?? [s.openingLine] };
 }

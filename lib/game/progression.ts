@@ -17,9 +17,14 @@ export function isSaved(o: Outcome): boolean {
   return (o.grade === "strong" || o.grade === "close") && !o.complied && o.endedBy !== "declined";
 }
 
-/** วางสายเองภายในเวลาผ่อนผันหลังจุดอันตราย */
+/**
+ * วางสายเองภายในเวลาผ่อนผันหลังจุดอันตราย
+ * แชทนับเป็นจำนวนข้อความ (lib/scoring.ts) ซึ่งไม่อยู่ในผลที่เซ็น → ใช้เกรด strong แทน (= บล็อกทันและแทบไม่หลุดข้อมูล)
+ */
 export function isOnTime(o: Outcome): boolean {
-  return o.endedBy === "player" && !o.complied && o.hangupT <= o.shouldHangUpAt + HANG_UP_GRACE_SECONDS;
+  if (o.endedBy !== "player" || o.complied) return false;
+  if (o.channel === "chat") return o.grade === "strong";
+  return o.hangupT <= o.shouldHangUpAt + HANG_UP_GRACE_SECONDS;
 }
 
 export function lateSecondsOf(o: Pick<Outcome, "endedBy" | "hangupT" | "shouldHangUpAt">): number {

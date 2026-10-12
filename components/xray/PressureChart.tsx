@@ -11,7 +11,7 @@ import {
   YAxis,
   type TooltipContentProps,
 } from "recharts";
-import { COPY, TACTIC_LABELS } from "@/lib/copy";
+import { COPY, endMarkers, TACTIC_LABELS } from "@/lib/copy";
 import { formatClock } from "@/lib/format";
 import type { TacticId } from "@/lib/types";
 import type { PressureChartProps } from "./types";
@@ -39,7 +39,8 @@ function PressureTooltip({ active, payload }: TooltipContentProps) {
   );
 }
 
-export function PressureChart({ turns, shouldHangUpAt, hangupT }: PressureChartProps) {
+export function PressureChart({ turns, channel, shouldHangUpAt, hangupT }: PressureChartProps) {
+  const markers = endMarkers(channel);
   const points: Point[] = turns
     .filter((t) => t.speaker === "scammer")
     .map((t) => ({ t: t.t, pressure: t.pressure, tactics: t.tactics }));
@@ -81,14 +82,14 @@ export function PressureChart({ turns, shouldHangUpAt, hangupT }: PressureChartP
               x={shouldHangUpAt}
               stroke="var(--color-danger)"
               strokeWidth={2}
-              label={{ value: COPY.shouldHangUpHere, position: "insideTopLeft", fill: "var(--color-text)", fontSize: 11 }}
+              label={{ value: markers.should, position: "insideTopLeft", fill: "var(--color-text)", fontSize: 11 }}
             />
             {hangupT !== null && (
               <ReferenceLine
                 x={hangupT}
                 stroke="var(--color-player)"
                 strokeWidth={2}
-                label={{ value: COPY.youHungUp, position: "insideBottomRight", fill: "var(--color-text)", fontSize: 11 }}
+                label={{ value: markers.you, position: "insideBottomRight", fill: "var(--color-text)", fontSize: 11 }}
               />
             )}
             <Area

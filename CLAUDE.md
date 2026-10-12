@@ -48,6 +48,7 @@
 GEMINI_API_KEY=            # จาก aistudio.google.com — เก็บใน .env.local เท่านั้น
 GEMINI_LIVE_MODEL=         # ชื่อรุ่น Live API ปัจจุบัน
 GEMINI_ANALYSIS_MODEL=     # รุ่น text สำหรับ X-Ray
+GEMINI_CHAT_MODEL=         # (ไม่บังคับ) รุ่น text ของแชทจำลอง — ว่าง = ใช้ GEMINI_ANALYSIS_MODEL
 MAX_CALL_SECONDS=180       # ตัดสายอัตโนมัติ กันเปลืองโควตา
 ```
 `.env.local` ต้องอยู่ใน `.gitignore` เสมอ
@@ -59,15 +60,20 @@ app/
   page.tsx                 # หน้าแรก + disclaimer ว่าเป็นการจำลอง
   levels/page.tsx          # เลือกด่าน
   call/[levelId]/page.tsx  # หน้าสายเรียกเข้า + ระหว่างโทร
+  chat/[levelId]/page.tsx  # แชทจำลอง (ด่าน channel "chat")
+  campus/page.tsx          # แผนที่ 3D แคมปัส = หน้าหลักของเกม
   xray/[sessionId]/page.tsx# Scam X-Ray + คะแนน
   api/token/route.ts       # ออก ephemeral token ให้ Live API
   api/analyze/route.ts     # ส่ง transcript → ได้ JSON แท็กเทคนิค
+  api/chat/route.ts        # แชทจำลอง: ประวัติแชท → ข้อความถัดไปของคนร้าย (stateless)
 components/                # IncomingCallScreen, InCallScreen, XRayTimeline, PressureChart, ScoreCard
   campus/                  # ฉาก 3D แคมปัส (R3F), ป้าย overlay, StoryCard, HUD, แผนที่ 2D สำรอง
+  chat/                    # ChatScreen, การ์ดประกอบ (ลิงก์/กำไร/สลิปปลอม), หน้าจบแชท
 lib/
   live/                    # เชื่อมต่อ Live API, audio worklet, จัดการ transcript
   scenarios/               # loader + types
   campus/                  # campus.json (สร้างจาก OSM), NPC, จุดยืน, เรขาคณิต
+  chat/                    # ChatController + useChat, กรองข้อความ AI, แปลงแชท → CallSession
   game/                    # ฉายา, XP/เลเวล/เหรียญ, บอร์ด
   scoring.ts
 scripts/                   # fetch-osm.mjs + build-campus.mjs (สร้าง lib/campus/campus.json)
@@ -180,7 +186,7 @@ Output ของ `/api/analyze` (บังคับด้วย JSON schema):
 - [x] Phase 0: `docs/GAME_SPEC.md`
 - [ ] Phase 1: ตัวตนผู้เล่น (guest + Google), XP/เลเวล/เหรียญ/ฉายา, `/me`, `/hall` — guest + XP + เหรียญ + บอร์ด ทดสอบกับ Supabase จริงผ่านแล้ว (2026-10-11) · เหลือทดสอบ login Google (`docs/DEPLOY.md` ข้อ 7C)
 - [x] Phase 2: แผนที่ 3D (React Three Fiber) + NPC + StoryCard — `/campus` ผังจริงจาก OSM + 7 แลนด์มาร์ก · Nut ทดสอบแล้ว ลื่นทั้งมือถือและ iPad (2026-10-12)
-- [ ] Phase 3: แชทจำลอง + ด่านลงทุน/งานออนไลน์
+- [ ] Phase 3: แชทจำลอง + ด่านลงทุน/งานออนไลน์ (โค้ดเสร็จ — `/chat/*` 2 ด่าน, X-Ray/คะแนน/XP ชุดเดิม · รอ Nut เล่นจริงบนมือถือ)
 - [ ] Phase 4: animation / X-Ray dramatic / เสียง / การ์ดแชร์
 - [ ] Phase 5: dataset AOC 1441 → 6–8 ด่าน + ทดสอบมือถือจริง
 
