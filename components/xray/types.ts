@@ -27,6 +27,8 @@ export interface XRayScreenProps {
 }
 
 export interface PressureChartProps {
+  /** true = วาดเส้นกราฟค่อยๆ ขึ้นตอนเปิดผล (Phase 4B) */
+  play?: boolean;
   turns: AnalyzedTurn[];
   /** แชทใช้คำว่า "บล็อก" แทน "วางสาย" */
   channel: Channel;
@@ -36,6 +38,8 @@ export interface PressureChartProps {
 }
 
 export interface XRayTimelineProps {
+  /** true = ประโยคทยอยขึ้น + ป้ายเทคนิคเด้งทีละอัน (Phase 4B) */
+  play?: boolean;
   turns: AnalyzedTurn[];
   channel: Channel;
   shouldHangUpAt: number;

@@ -41,7 +41,15 @@ export const COPY = {
 
   openXRay: "ดู Scam X-Ray",
   xrayTitle: "Scam X-Ray",
-  analyzing: "กำลังวิเคราะห์สาย…",
+  xrayKicker: "SCAM X-RAY · ผลสแกน",
+  scammedStamp: "SCAMMED",
+  skip: "ข้าม ⏭",
+  xrayScanSteps: (channel: Channel) => [
+    "กำลังสแกนบทสนทนา…",
+    "กำลังหาเทคนิคที่คนร้ายใช้…",
+    "กำลังวัดระดับความกดดัน…",
+    channel === "chat" ? "กำลังหาจุดที่ควรบล็อก…" : "กำลังหาจุดที่ควรวางสาย…",
+  ],
   analyzeFailed: "วิเคราะห์ไม่สำเร็จ (โควตา AI อาจเต็ม)",
   retry: "ลองใหม่",
   sessionMissing: "ไม่พบผลของสายนี้ — อาจปิดแท็บไปแล้ว หรือไม่ได้ยินยอมให้เก็บบทสนทนา",

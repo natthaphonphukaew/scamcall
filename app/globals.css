@@ -23,7 +23,13 @@
   --color-call-top: #1c2738;
   --color-call-bottom: #05070a;
 
+  /* Scam X-Ray (Phase 4B) — ธีม "สแกน" เรืองแสงฟ้าอมเขียว */
+  --color-xray: #2dd4bf;
+
   /* อนิเมชัน — ใช้คู่กับ motion-safe: เสมอ (ปิดเองเมื่อเครื่องตั้ง reduced motion) */
+  --animate-scan: scan 1.8s ease-in-out infinite;
+  --animate-glitch-a: glitch-a 2.6s steps(1) infinite;
+  --animate-glitch-b: glitch-b 2.6s steps(1) infinite;
   --animate-ripple: ripple 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
   --animate-shimmer: shimmer 2.4s linear infinite;
   --animate-nudge: nudge 0.6s ease-in-out;
@@ -44,6 +50,63 @@
     }
     100% {
       background-position: -200% 0;
+    }
+  }
+  @keyframes scan {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(420%);
+    }
+  }
+  /* glitch: กระตุกช่วงสั้นๆ ต้นรอบ แล้วนิ่ง (ไม่กระพริบตลอดเวลา) */
+  @keyframes glitch-a {
+    0%,
+    20%,
+    100% {
+      clip-path: inset(0 0 100% 0);
+      transform: none;
+    }
+    2% {
+      clip-path: inset(8% 0 62% 0);
+      transform: translate(-4px, -1px);
+    }
+    7% {
+      clip-path: inset(52% 0 22% 0);
+      transform: translate(4px, 1px);
+    }
+    12% {
+      clip-path: inset(28% 0 48% 0);
+      transform: translate(-3px, 0);
+    }
+    16% {
+      clip-path: inset(74% 0 4% 0);
+      transform: translate(3px, -1px);
+    }
+  }
+  @keyframes glitch-b {
+    0%,
+    20%,
+    100% {
+      clip-path: inset(0 0 100% 0);
+      transform: none;
+    }
+    3% {
+      clip-path: inset(60% 0 12% 0);
+      transform: translate(4px, 1px);
+    }
+    8% {
+      clip-path: inset(14% 0 66% 0);
+      transform: translate(-4px, 0);
+    }
+    13% {
+      clip-path: inset(40% 0 36% 0);
+      transform: translate(3px, -1px);
+    }
+    17% {
+      clip-path: inset(4% 0 80% 0);
+      transform: translate(-2px, 1px);
     }
   }
   @keyframes nudge {

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
 import type { SubmitStatus } from "@/components/xray/types";
+import { XRayScanner } from "@/components/xray/XRayScanner";
 import { XRayScreen } from "@/components/xray/XRayScreen";
 import { requestAnalysis } from "@/lib/analysis/client";
 import { COPY } from "@/lib/copy";
@@ -70,23 +71,18 @@ export default function XRayController({ sessionId }: { sessionId: string }) {
   }
 
   if (!analysis) {
+    if (!failed) return <XRayScanner channel={session.channel ?? "call"} />;
     return (
       <Screen className="items-center justify-center gap-4 text-center">
-        {failed ? (
-          <>
-            <p className="text-danger">{COPY.analyzeFailed}</p>
-            <Button
-              onClick={() => {
-                setFailed(false);
-                setAttempt((a) => a + 1);
-              }}
-            >
-              {COPY.retry}
-            </Button>
-          </>
-        ) : (
-          <p className="animate-pulse text-muted">{COPY.analyzing}</p>
-        )}
+        <p className="text-danger">{COPY.analyzeFailed}</p>
+        <Button
+          onClick={() => {
+            setFailed(false);
+            setAttempt((a) => a + 1);
+          }}
+        >
+          {COPY.retry}
+        </Button>
       </Screen>
     );
   }

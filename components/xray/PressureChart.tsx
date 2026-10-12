@@ -39,7 +39,7 @@ function PressureTooltip({ active, payload }: TooltipContentProps) {
   );
 }
 
-export function PressureChart({ turns, channel, shouldHangUpAt, hangupT }: PressureChartProps) {
+export function PressureChart({ play = false, turns, channel, shouldHangUpAt, hangupT }: PressureChartProps) {
   const markers = endMarkers(channel);
   const points: Point[] = turns
     .filter((t) => t.speaker === "scammer")
@@ -103,7 +103,9 @@ export function PressureChart({ turns, channel, shouldHangUpAt, hangupT }: Press
               fillOpacity={0.1}
               dot={{ r: 4, fill: "var(--color-scammer)", stroke: "var(--color-surface-raised)", strokeWidth: 2 }}
               activeDot={{ r: 6, fill: "var(--color-scammer)", stroke: "var(--color-surface-raised)", strokeWidth: 2 }}
-              isAnimationActive={false}
+              isAnimationActive={play}
+              animationDuration={1400}
+              animationEasing="ease-out"
             />
           </AreaChart>
         </ResponsiveContainer>

@@ -10,7 +10,11 @@ const REPEAT_MS = 2200;
 export function useRingVibration(active: boolean): void {
   useEffect(() => {
     if (!active || typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
-    const buzz = () => navigator.vibrate(RING_PATTERN);
+    // browser ยอมให้สั่นเฉพาะหลังผู้ใช้แตะหน้าเว็บแล้ว (เปิดลิงก์สายตรงๆ = ยังไม่แตะ → ข้าม ไม่ให้ console เต็ม error)
+    const buzz = () => {
+      if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
+      navigator.vibrate(RING_PATTERN);
+    };
     buzz();
     const id = window.setInterval(buzz, REPEAT_MS);
     return () => {
